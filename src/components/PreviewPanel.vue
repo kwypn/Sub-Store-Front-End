@@ -65,9 +65,9 @@
       type === 'sub' ? '' : 'collection/'
     }${encodeURIComponent(name)}${urlTarget}`;
     if (isSupported) {
-      await copy(encodeURI(url));
+      await copy(url);
     } else {
-      await copyFallback(encodeURI(url));
+      await copyFallback(url);
     }
     showNotify({ title: notify });
   };
