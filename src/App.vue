@@ -31,8 +31,18 @@
     standalone?: boolean;
   };
   const navigator: NavigatorExtend = window.navigator;
-  const hasHomeIndicator: boolean = window.matchMedia('(max-height: 812px) and (-webkit-touch-edge: pan-down)').matches;
-  globalStore.setBottomSafeArea(navigator.standalone && hasHomeIndicator ? 18 : 0);
+
+  // 判断是否为非全面屏设备
+  function isLegacyDevices() {
+  const screenWidth = window.screen.width;
+  const screenHeight = window.screen.height;
+  if ((screenWidth === 375 && screenHeight === 667) || (screenWidth === 414 && screenHeight === 736)) {
+    return true;
+  }
+  return false;
+}
+
+  globalStore.setBottomSafeArea((navigator.standalone && !isLegacyDevices()) ? 18 : 0);
 
   // 如果带有 url 参数配置 api，则将其添加到 api 列表并切换
   const { handleUrlQuery } = useHostAPI();
