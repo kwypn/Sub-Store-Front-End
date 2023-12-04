@@ -374,6 +374,10 @@ export default {
         succeed: '保存成功',
         failed: '保存失败',
       },
+      restore: {
+        succeed: '恢复成功',
+        failed: '恢复失败',
+      },
       download: {
         succeed: '下载成功',
         failed: '下载失败',
@@ -395,6 +399,17 @@ export default {
       clear: '清空',
     },
     config: '配置',
+    storage: {
+      gist: {
+        label: 'Gist 同步'
+      },
+      manual: {
+        label: '手动管理',
+        desc: '为防止意外 请先备份数据 再进行恢复操作',
+        backup: '备份',
+        restore: '恢复',
+      }
+    }
   },
   comparePage: {
     title: '即时预览',
@@ -512,7 +527,9 @@ export default {
   },
   apiSettingPage: {
     apiSettingTitle: '后端设置',
-    apiSettingDesc: `添加后端服务器地址，例如 VPS 或 Render 上搭建的后端服务。可以查看小一佬的后端搭建教程：`,
+    apiSettingDesc0: `1. 后端地址为 https://api.com 时, 将尝试请求 https://api.com/api/utils/env 验证后端可用性. 当无法添加后端地址时, 可先尝试访问此地址`,
+    apiSettingDesc1: `2. HTTPS 前端无法请求非本地的 HTTP 后端. 请配置反代或在局域网自建 HTTP 前端. `,
+    apiSettingDesc2: `3. 添加后端服务器地址，例如 VPS 或 Render 上搭建的后端服务。可以查看小一佬的后端搭建教程：`,
     currentApi: {
       title: '当前后端',
     },
