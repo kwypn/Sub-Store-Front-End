@@ -3,6 +3,7 @@ export default {
   specificWord: {
     singleSub: '单条订阅',
     collectionSub: '组合订阅',
+    file: '文件',
   },
   globalNotify: {
     refresh: {
@@ -21,9 +22,11 @@ export default {
     },
     pagesTitle: {
       sub: '订阅管理',
-      sync: '同步订阅',
+      file: '文件管理',
+      sync: '同步',
       my: '我的',
       subEditor: '订阅编辑',
+      fileEditor: '文件编辑',
       themeSetting: '主题设置',
       moreSetting: '更多设置',
       apiSetting: '后端设置',
@@ -31,9 +34,9 @@ export default {
       notFound: '地址未找到',
       askWhat: {
         sync: {
-          title: '什么是同步订阅？',
+          title: '什么是同步？',
           content:
-            '将您的订阅信息上传到私有 Gist，在无法运行 Sub Store 的设备（例如路由器等）上也可以随时访问。',
+            '将订阅/文件上传到私有 Gist，在无法运行 Sub Store 的设备（例如路由器等）上也可以随时访问。',
         },
         subEditor: {
           title: '下载不了订阅？',
@@ -57,6 +60,36 @@ export default {
     title: '啊哦～ URL 错误！',
     desc: '回首页',
     backendDesc: '如果你看到这个 可能是因为浏览器前端路由拦截的问题 可以强制刷新查看或直接使用该链接 不影响此链接的使用',
+  },
+  filePage: {
+    deleteFile: {
+      succeedNotify: '删除文件成功',
+    },
+    content: {
+      placeholder: '填入文件内容'
+    },
+    url: {
+      label: '链接',
+      placeholder: '链接(多个链接请换行)',
+      isEmpty: '链接不能为空',
+      isIllegal: '链接格式非法',
+    },
+    copyNotify: {
+      succeed: '复制文件链接成功\n如果你只在内部使用, 仅需 {path}',
+      failed: '复制文件链接失败\n{e}',
+    },
+    emptySub: {
+      title: '你还没有添加文件',
+      desc: '添加后开始使用文件',
+      btn: '立即添加',
+    },
+    source: {
+      local: '本地',
+      remote: '远程',
+    },
+    ignoreFailedRemoteFile: {
+      label: '忽略失败的远程文件'
+    },
   },
   // 订阅管理页
   subPage: {
@@ -90,9 +123,9 @@ export default {
       noExpiresInfo: '无有效期信息',
     },
     deleteSub: {
-      title: '删除订阅',
-      desc: '是否确认删除订阅 {displayName}？删除后不可恢复！',
-      succeedNotify: '删除订阅成功！',
+      title: '删除',
+      desc: '是否确认删除 {displayName}？删除后不可恢复！',
+      succeedNotify: '删除成功！',
       btn: {
         confirm: '确认删除',
         cancel: '取消',
@@ -155,12 +188,12 @@ export default {
         name: {
           label: '名称',
           placeholder: '唯一的标识名称(请勿包含 / )',
-          isEmpty: '订阅名称不能为空',
-          isInvalid: '订阅名称已存在或不合法'
+          isEmpty: '名称不能为空',
+          isInvalid: '名称已存在或不合法'
         },
         displayName: {
           label: '显示名称',
-          placeholder: '输入展示的订阅名称',
+          placeholder: '输入展示的名称',
         },
         source: {
           label: '来源',
@@ -173,7 +206,7 @@ export default {
         },
         url: {
           label: '链接',
-          placeholder: '填入机场原始订阅链接',
+          placeholder: '订阅链接(多个订阅请换行)',
           isEmpty: '订阅链接不能为空',
           isIllegal: '订阅链接格式非法',
         },
@@ -193,7 +226,7 @@ export default {
         },
         ua: {
           label: 'User-Agent',
-          placeholder: '下载订阅使用的 UA，不填使用默认',
+          placeholder: '下载时使用的 UA，不填使用默认',
         },
       },
       commonOptions: {
@@ -250,7 +283,7 @@ export default {
           label: '脚本操作',
           options: ['链接', '脚本'],
           des: ['类型', '内容'],
-          placeholder: '填入脚本链接',
+          placeholder: '填入完整远程脚本链接 或 类似 /api/file/name 的内部文件调用路径',
           openEditorBtn: '打开脚本编辑器',
           tipsTitle: '脚本操作操作提示',
           tipsDes: '使用一段 JavaScript 脚本来修改节点信息',
@@ -477,7 +510,7 @@ export default {
       },
     },
     copyNotify: {
-      succeed: '复制 Gist 链接成功\n可以前往代理工具使用咯～',
+      succeed: '复制 Gist 链接成功',
       failed: '复制 Gist 链接失败\n{e}',
     },
     addArtForm: {
@@ -566,6 +599,7 @@ export default {
     isIC: '使用订阅图标原始颜色',
     isEditorCommon: '展示编辑页常用配置',
     isSimpleReicon: '展示订阅刷新按钮',
+    showFloatingRefreshButton: '显示悬浮刷新按钮',
     tabBar: '隐藏“Gist 同步”页',
     auto2: '自定义设置 Key',
     hostapi: '自定义后端 API',

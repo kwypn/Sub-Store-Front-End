@@ -3,6 +3,7 @@ export default {
   specificWord: {
     singleSub: 'Single',
     collectionSub: 'Collection',
+    file: 'File',
   },
   globalNotify: {
     refresh: {
@@ -21,9 +22,11 @@ export default {
     },
     pagesTitle: {
       sub: 'Management',
-      sync: 'Sync Subscription',
+      file: 'File',
+      sync: 'Sync',
       my: 'My Profile',
       subEditor: 'Subscription Editor',
+      fileEditor: 'File Editor',
       themeSetting: 'Theme Setting',
       moreSetting: 'More Setting',
       apiSetting: 'Backend Setting',
@@ -31,9 +34,9 @@ export default {
       notFound: '404 Not Found',
       askWhat: {
         sync: {
-          title: 'What is Sync Subscription?',
+          title: 'What is Sync?',
           content:
-            'Upload your subscriptions to a private Gist, which can be accessed at any time on devices that do not run the Sub Store (e.g. routers, etc.).',
+            'Upload your subscriptions/files to a private Gist, which can be accessed at any time on devices that do not run the Sub Store (e.g. routers, etc.).',
         },
         subEditor: {
           title: 'Download no subscription?',
@@ -57,6 +60,36 @@ export default {
     title: 'Oops! URL Error!',
     desc: 'Back to Home Page',
     backendDesc: 'If you are seeing this, it is probably due to a routing interception issue on the front end of your browser. You can force a refresh to see it or use the link directly without affecting the use of this link.',
+  },
+  filePage: {
+    deleteFile: {
+      succeedNotify: 'Successfully deleted!',
+    },
+    content: {
+      placeholder: 'The content of the file'
+    },
+    url: {
+      label: 'URL',
+      placeholder: 'URL (please separate multiple urls with a new line)',
+      isEmpty: 'URL cannot be empty',
+      isIllegal: 'Invalid URL',
+    },
+    copyNotify: {
+      succeed: 'Successfully copied link!\nIf you use it internally, just {path}',
+      failed: 'Failed to copy file link!\n{e}',
+    },
+    emptySub: {
+      title: 'You have no File yet',
+      desc: 'After adding you can enjoy the love of YM Peng',
+      btn: 'Create File Now',
+    },
+    source: {
+      local: 'Local',
+      remote: 'Remote',
+    },
+    ignoreFailedRemoteFile: {
+      label: 'Ignore failed remote file(s)'
+    },
   },
   // subscription management page
   subPage: {
@@ -91,8 +124,8 @@ export default {
       noExpiresInfo: 'No expires info',
     },
     deleteSub: {
-      title: 'Delete Subscription',
-      desc: 'Are you sure to delete subscription {displayName}? \nDeleted cannot be restored!',
+      title: 'Delete',
+      desc: 'Are you sure to delete {displayName}? \nDeleted cannot be restored!',
       succeedNotify: 'Successfully deleted!',
       btn: {
         confirm: 'Delete',
@@ -100,7 +133,7 @@ export default {
       },
     },
     copyNotify: {
-      succeed: 'Successfully copied link!\nYou can paste in Proxy Tool now!',
+      succeed: 'Successfully copied link!',
       failed: 'Failed to copy subscription link!\n{e}',
     },
     copyConfigNotify: {
@@ -160,7 +193,7 @@ export default {
         },
         displayName: {
           label: 'Display Name',
-          placeholder: 'The display name for the subscription',
+          placeholder: 'The display name',
         },
         source: {
           label: 'Source',
@@ -173,7 +206,7 @@ export default {
         },
         url: {
           label: 'URL',
-          placeholder: 'The original subscription URL',
+          placeholder: 'Subscription URL (please separate multiple subscriptions with a new line)',
           isEmpty: 'URL cannot be empty',
           isIllegal: 'Invalid URL',
         },
@@ -194,7 +227,7 @@ export default {
         ua: {
           label: 'User-Agent',
           placeholder:
-            'The User-Agent for downloading the original subscription',
+            'The User-Agent for downloading resource(s)',
         },
       },
       commonOptions: {
@@ -341,7 +374,7 @@ export default {
           label: 'Script Filter',
           options: ['Link', 'Script'],
           des: ['Type', 'Content'],
-          placeholder: 'Input Script Link',
+          placeholder: 'Input Script Link or Internal File like /api/file/name',
           openEditorBtn: 'Open Code Editor',
           tipsTitle: 'Script Filter Tips',
           tipsDes: '脚本操作操作说明',
@@ -562,6 +595,7 @@ export default {
     isIC: 'Use original color for icons',
     isEditorCommon: 'Show editor common settings',
     isSimpleReicon: 'Show items refresh button',
+    showFloatingRefreshButton: 'Show floating refresh button',
     tabBar: 'Hide "Sync" Page',
     auto2: 'MoreSetting Key',
     hostapi: 'Custom Backend API',
