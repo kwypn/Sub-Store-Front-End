@@ -12,6 +12,7 @@ interface GlobalStoreState {
   isSimpleReicon: boolean;
   showFloatingRefreshButton: boolean;
   istabBar: boolean;
+  istabBar2: boolean;
   ishostApi: string;
 }
 
@@ -20,6 +21,7 @@ interface ENV {
   latestVersion?: string;
   version?: string;
   backend?:
+    | 'sing-box'
     | 'Stash'
     | 'QX'
     | 'Loon'
