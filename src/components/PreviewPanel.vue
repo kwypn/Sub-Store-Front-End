@@ -6,6 +6,7 @@
           <img :src="platform.icon" class="auto-reverse" />
         </div>
         <p>{{ platform.name }}</p>
+        <nut-icon name="tips" v-if="platform.name === 'Surge'" @click="surgeTips"></nut-icon>
       </div>
 
       <div class="actions">
@@ -34,6 +35,7 @@
 </template>
 
 <script lang="ts" setup>
+  import { Toast } from '@nutui/nutui';
   import surfboard from '@/assets/icons/surfboard.png';
   import surge from '@/assets/icons/surge.png';
   import clash from '@/assets/icons/clash.png';
@@ -50,6 +52,7 @@
   import { useAppNotifyStore } from '@/store/appNotify';
   import SvgIcon from '@/components/SvgIcon.vue';
   import { useHostAPI } from '@/hooks/useHostAPI';
+
   const { copy, isSupported } = useClipboard();
   const { toClipboard: copyFallback } = useV3Clipboard();
   const { showNotify } = useAppNotifyStore();
@@ -78,11 +81,6 @@
       name: general,
       path: null,
       icon: logoicon,
-    },
-    {
-      name: 'sing-box',
-      path: 'sing-box',
-      icon: singbox,
     },
     {
       name: 'Stash',
@@ -126,11 +124,27 @@
       icon: quanx,
     },
     {
+      name: 'sing-box',
+      path: 'sing-box',
+      icon: singbox,
+    },
+    {
       name: 'V2Ray',
       path: 'V2Ray',
       icon: v2ray,
     },
   ];
+  const surgeTips = () => {
+    Toast.text('"target=SurgeMac" - supports ShadowsocksR/External Proxy Program', {
+      title: 'Surge Tips',
+      duration: 0,
+      cover: true,
+      'close-on-click-overlay': true,
+      'bg-color': 'rgba(0, 0, 0, 0.8)',
+      'cover-color': 'rgba(0, 0, 0, 0.2)',
+      'text-align-center': false,
+    });
+  };
 </script>
 
 <style lang="scss" scoped>

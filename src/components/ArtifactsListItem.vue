@@ -2,7 +2,7 @@
   <nut-swipe class="sub-item-swipe" ref="swipe" :disabled="$props.disabled">
     <div class="sub-item-wrapper" :style="{'padding': isSimpleMode ? '9px' : '16px' }" @click.stop="previewSource">
       <a class="sub-img-wrappers" :href="artifact.url" target="_blank">
-        <nut-avatar class="sub-item-customer-icon"  :size="isSimpleMode ? '36' : '48'" :url="icon" bg-color=""></nut-avatar>
+        <nut-avatar :class="{ 'sub-item-customer-icon': !isIconColor }"  :size="isSimpleMode ? '36' : '48'" :url="icon" bg-color=""></nut-avatar>
       </a>
       <div class="sub-item-content">
         <div class="sub-item-title-wrapper">
@@ -26,7 +26,7 @@
           </p>
           <div class="second-line-wrapper">
             <p>{{ detail.secondLine }}</p>
-            <div class="task-switch" :style="{'margin-top': isSimpleMode ? '-22px' : '0' }">
+            <div class="task-switch">
               <div v-if="isSimpleMode">
                 <button v-if="artifact.url" class="copy-sub-link"
                   style="padding: 0 12px;" @click.stop="onClickCopyLink">
@@ -88,15 +88,27 @@
 </template>
 
 <script lang="ts" setup>
+import logoIcon from '@/assets/icons/logo.svg';
 import singboxIcon from '@/assets/icons/sing-box.png';
 import clashIcon from '@/assets/icons/clash.png';
 import clashMetaIcon from '@/assets/icons/clashmeta.png';
 import loonIcon from '@/assets/icons/loon.png';
 import quanxIcon from '@/assets/icons/quanx.png';
 import shadowRocketIcon from '@/assets/icons/shadowrocket.png';
+import surfboardIcon from '@/assets/icons/surfboard.png';
 import stashIcon from '@/assets/icons/stash.png';
 import surgeIcon from '@/assets/icons/surge.png';
 import v2rayIcon from '@/assets/icons/v2ray.png';
+import singboxColorIcon from '@/assets/icons/sing-box_color.png';
+import clashColorIcon from '@/assets/icons/clash_color.png';
+import clashMetaColorIcon from '@/assets/icons/clashmeta_color.png';
+import loonColorIcon from '@/assets/icons/loon_color.png';
+import quanxColorIcon from '@/assets/icons/quanx_color.png';
+import shadowRocketColorIcon from '@/assets/icons/shadowrocket_color.png';
+import surfboardColorIcon from '@/assets/icons/surfboard_color.png';
+import stashColorIcon from '@/assets/icons/stash_color.png';
+import surgeColorIcon from '@/assets/icons/surge_color.png';
+import v2rayColorIcon from '@/assets/icons/v2ray_color.png';
 import { useAppNotifyStore } from '@/store/appNotify';
 import { useArtifactsStore } from '@/store/artifacts';
 import { useSubsStore } from '@/store/subs';
@@ -112,7 +124,7 @@ import { useGlobalStore } from '@/store/global';
 import { useHostAPI } from '@/hooks/useHostAPI';
 const globalStore = useGlobalStore();
 
-const { isLeftRight, isSimpleMode } = storeToRefs(globalStore);
+const { isLeftRight, isSimpleMode, isIconColor } = storeToRefs(globalStore);
 const { copy, isSupported } = useClipboard();
 const { toClipboard: copyFallback } = useV3Clipboard();
 
@@ -133,28 +145,7 @@ const artifact = computed(() => {
 });
 const emit = defineEmits(['edit']);
 
-const icon = computed(() => {
-  switch (artifact.value.platform) {
-    case 'Surge':
-      return surgeIcon;
-    case 'QX':
-      return quanxIcon;
-    case 'Loon':
-      return loonIcon;
-    case 'Clash':
-      return clashIcon;
-    case 'ClashMeta':
-      return clashMetaIcon;
-    case 'Stash':
-      return stashIcon;
-    case 'ShadowRocket':
-      return shadowRocketIcon;
-    case 'V2Ray':
-      return v2rayIcon;
-    case 'sing-box':
-      return singboxIcon;
-  }
-});
+
 
 const displayName = computed(() => {
   return (
@@ -180,6 +171,46 @@ const sourceSub = computed(() => {
       return subsStore.getOneSub(name);
     case 'file':
       return subsStore.getOneFile(name);
+  }
+});
+
+const icon = computed(() => {
+  const icon = artifact.value.icon
+  if (icon) {
+    return icon;
+  }
+  let platform = String(artifact.value.platform)
+  if (['file'].includes(artifact.value.type)) {
+    if (sourceSub.value?.icon) {
+      return sourceSub.value.icon;  
+    } else {
+      platform = ''
+    }
+    
+  }
+  switch (platform) {
+    case 'Surge':
+      return isIconColor.value ? surgeColorIcon: surgeIcon;
+    case 'QX':
+      return isIconColor.value ? quanxColorIcon: quanxIcon;
+    case 'Loon':
+      return isIconColor.value ? loonColorIcon: loonIcon;
+    case 'Clash':
+      return isIconColor.value ? clashColorIcon: clashIcon;
+    case 'ClashMeta':
+      return isIconColor.value ? clashMetaColorIcon: clashMetaIcon;
+    case 'Stash':
+      return isIconColor.value ? stashColorIcon: stashIcon;
+    case 'ShadowRocket':
+      return isIconColor.value ? shadowRocketColorIcon: shadowRocketIcon;
+    case 'V2Ray':
+      return isIconColor.value ? v2rayColorIcon: v2rayIcon;
+    case 'sing-box':
+      return isIconColor.value ? singboxColorIcon: singboxIcon;
+    case 'Surfboard':
+      return isIconColor.value ? surfboardColorIcon: surfboardIcon;
+    default:
+      return logoIcon;
   }
 });
 
@@ -216,6 +247,8 @@ const transferText = (type: string) => {
         return t('specificWord.collectionSub');
       case 'file':
         return t('specificWord.file');
+      default:
+        return t('specificWord.unknownType');
     }
   };
 
@@ -244,23 +277,19 @@ const transferText = (type: string) => {
 
 
 const detail = computed(() => {
+  const name = sourceSub.value ? (sourceSub.value?.displayName ||
+      sourceSub.value?.['display-name'] || sourceSub.value?.name) : t('specificWord.unknownSource')
+  const type = transferText('type') || ''
   if (isSimpleMode.value) {
-    const name =
-      sourceSub.value?.displayName ||
-      sourceSub.value?.['display-name'] ||
-      sourceSub.value?.name;
     return {
       firstLine: '',
-      secondLine: transferText('type') + ' ' + name + ' ' + transferText('time'),
+      secondLine: type + ' ' + name + ' ' + transferText('time'),
     };
   } else {
     return {
       firstLine: t(`syncPage.detail.firstLine`, {
-        type: transferText('type'),
-        name:
-          sourceSub.value?.displayName ||
-          sourceSub.value?.['display-name'] ||
-          sourceSub.value?.name,
+        type,
+        name
       }),
       secondLine: transferText('time'),
     };

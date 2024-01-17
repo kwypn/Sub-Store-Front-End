@@ -56,6 +56,19 @@
         />
       </nut-form-item>
       <nut-form-item
+        :label="$t(`editorPage.subConfig.basic.icon.label`)"
+        prop="icon"
+      >
+        <nut-input
+          input-align="left"
+          class="nut-input-text"
+          :placeholder="$t(`editorPage.subConfig.basic.icon.placeholder`)"
+          v-model="editPanelData.icon"
+          type="text"
+        />
+      </nut-form-item>
+
+      <nut-form-item
         :label="$t(`syncPage.addArtForm.source.label`)"
         required
         prop="source"
@@ -92,7 +105,6 @@
           v-model="editPanelData.platform"
           class="artifact-radio-group"
         >
-          <nut-radio label="sing-box">sing-box</nut-radio>
           <nut-radio label="Stash">Stash</nut-radio>
           <nut-radio label="ClashMeta">Clash.Meta(mihomo)</nut-radio>
           <nut-radio label="Clash">Clash</nut-radio>
@@ -101,6 +113,7 @@
           <nut-radio label="Loon">Loon</nut-radio>
           <nut-radio label="ShadowRocket">Shadowrocket</nut-radio>
           <nut-radio label="QX">Quantumult X</nut-radio>
+          <nut-radio label="sing-box">sing-box</nut-radio>
           <nut-radio label="V2Ray">V2Ray</nut-radio>
         </nut-radiogroup>
       </nut-form-item>
@@ -142,9 +155,10 @@
   const editPanelData = ref<Artifact>({
     name: '',
     displayName: '',
+    icon: '',
     source: '',
     type: 'file',
-    platform: 'Surge',
+    platform: 'Stash',
   });
 
   const sourceSelectorIsVisible = ref(false);
@@ -208,15 +222,15 @@
 
   const displayType = computed(() => {
     const typeValue = editPanelData.value.type;
-    return sourceOptions.value.find(item => item.value === typeValue).text;
+    return sourceOptions.value.find(item => item.value === typeValue)?.text ?? t(`specificWord.unknown`);
   });
 
   const displayName = computed(() => {
     const typeValue = editPanelData.value.type;
     const typeObj = sourceOptions.value.find(item => item.value === typeValue);
-    return typeObj.children.find(
+    return typeObj?.children?.find(
       item => item.value === editPanelData.value.source
-    ).text;
+    )?.text ?? t(`specificWord.unknown`);
   });
 
   const sourceChange = v1 => {

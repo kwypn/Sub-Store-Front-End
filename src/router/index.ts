@@ -38,6 +38,19 @@ declare module 'vue-router' {
 
 const history = createWebHistory();
 const router = createRouter({
+  scrollBehavior(to, from, savedPosition) {
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth',
+      }
+    }
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0, left: 0 }
+    }
+  },
   history,
   routes: [
     {
@@ -196,7 +209,7 @@ router.beforeResolve(async to => {
         } else if (to.params.editType === 'collections') {
           await useSubsApi().getOne('collection', name);
         }else if (to.params.editType === 'files') {
-          await useFilesApi().getOneFile(name);
+          await useFilesApi().getWholeFile(name);
         }
       } catch {
         router.replace('/404');

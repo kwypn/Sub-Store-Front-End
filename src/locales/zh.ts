@@ -4,6 +4,9 @@ export default {
     singleSub: '单条订阅',
     collectionSub: '组合订阅',
     file: '文件',
+    unknownType: '未知类型',
+    unknownSource: '未知来源',
+    unknown: '未知',
   },
   globalNotify: {
     refresh: {
@@ -70,7 +73,7 @@ export default {
     },
     url: {
       label: '链接',
-      placeholder: '链接(多个链接请换行)',
+      placeholder: '链接(多个链接请换行) 支持参数: noCache 不使用缓存. 例: http://a.com#noCache',
       isEmpty: '链接不能为空',
       isIllegal: '链接格式非法',
     },
@@ -206,7 +209,7 @@ export default {
         },
         url: {
           label: '链接',
-          placeholder: '订阅链接(多个订阅请换行)',
+          placeholder: '订阅链接(多个订阅请换行) 支持参数: noFlow 不查询流量, noCache 不使用缓存. 例: http://a.com?token=1#noFlow&noCache',
           isEmpty: '订阅链接不能为空',
           isIllegal: '订阅链接格式非法',
         },
@@ -283,7 +286,7 @@ export default {
           label: '脚本操作',
           options: ['链接', '脚本'],
           des: ['类型', '内容'],
-          placeholder: '填入完整远程脚本链接 或 类似 /api/file/name 的内部文件调用路径',
+          placeholder: '填入完整远程脚本链接 或 类似 /api/file/name 的内部文件调用路径. 除了脚本本身的参数外, 支持叠加参数: noCache 不使用缓存. 例: http://a.com#a=1&b=2#noCache',
           openEditorBtn: '打开脚本编辑器',
           tipsTitle: '脚本操作操作提示',
           tipsDes: '使用一段 JavaScript 脚本来修改节点信息',
@@ -304,7 +307,7 @@ export default {
         },
         'Resolve Domain Operator': {
           label: '域名解析',
-          des: '服务提供商',
+          des: '提供商(仅 IPv4. 可由节点字段 "no-resolve" 控制)',
           options: ['Google', 'IP-API', 'Cloudflare', 'Ali', 'Tencent'],
           tipsTitle: '域名解析操作提示',
           tipsDes: '将节点域名解析成为 IP 地址，减少一次额外的 DNS 请求',
@@ -318,18 +321,19 @@ export default {
         'Type Filter': {
           label: '类型过滤',
           options: [
-            'ShadowSocks',
-            'ShadowSocks R',
+            'Shadowsocks',
+            'ShadowsocksR',
             'VMess',
-            'VLess',
+            'VLESS',
             'Trojan',
-            'Http(s)',
-            'Socks5',
+            'HTTP(s)',
+            'SOCKS5',
             'Snell',
             'TUIC',
             'Hysteria',
-            'Hysteria2',
+            'Hysteria 2',
             'WireGuard',
+            'External Proxy Program',
           ],
           tipsTitle: '节点类型过滤操作提示',
           tipsDes: '按照代理协议类型过滤节点',
@@ -385,7 +389,7 @@ export default {
           label: '脚本过滤',
           options: ['链接', '脚本'],
           des: ['类型', '内容'],
-          placeholder: '填入脚本链接',
+          placeholder: '填入完整远程脚本链接 或 类似 /api/file/name 的内部文件调用路径. 除了脚本本身的参数外, 支持叠加参数: noCache 不使用缓存. 例: http://a.com#a=1&b=2#noCache',
           openEditorBtn: '打开脚本编辑器',
           tipsTitle: '脚本过滤器操作提示',
           tipsDes: '使用一段 JavaScript 脚本来过滤节点',
@@ -502,7 +506,7 @@ export default {
     },
     deleteArt: {
       title: '删除同步配置',
-      desc: '是否确认删除同步配置 {displayName}？删除后不可恢复！',
+      desc: '是否确认删除同步配置 {displayName}？删除后不可恢复！\n\n⚠️ 若当前同步配置进行过同步, 将尝试删除对应的 gist 文件',
       succeedNotify: '删除同步配置成功！',
       btn: {
         confirm: '确认删除',
@@ -551,6 +555,18 @@ export default {
     selectSource: {
       title: '选择来源',
     },
+    preview: {
+      title: 'Sub-Store Gist',
+      content: '最近一次检查的状态: {status}\n更新配置后将自动触发一次检查',
+      url: '当前的 gist 为最后一次检查正常的 gist',
+      noUrl: '检查成功并上传同步配置后 即可查看',
+      cancel: '取消',
+      confirm: '查看 gist',
+    },
+    download: {
+      content: '⚠️ 只会获取不在同步配置中的 gist 文件\n你需要手动设置来源',
+      confirm: '从 gist 恢复',
+    }
   },
   themeSettingPage: {
     themeSettingTitle: '外观设置',
@@ -596,7 +612,7 @@ export default {
           打开开关不会上传，只有在重启后才会下载配置。`,
     simple: '简洁模式',
     islr: '卡片右滑呼出',
-    isIC: '使用订阅图标原始颜色',
+    isIC: '自定义图标使用原始颜色',
     isEditorCommon: '展示编辑页常用配置',
     isSimpleReicon: '展示订阅刷新按钮',
     showFloatingRefreshButton: '显示悬浮刷新按钮',

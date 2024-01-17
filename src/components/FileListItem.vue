@@ -19,7 +19,6 @@
           />
           <nut-avatar
             v-else
-            class="sub-item-customer-icon"
             :size="isSimpleMode ? '36' : '48'"
             :url="icon"
             bg-color=""
@@ -77,7 +76,7 @@
           </div>
         </div>
         <template v-if="!isSimpleMode">
-          <p v-if="type === 'sub'" class="sub-item-detail">
+          <p class="sub-item-detail">
             <template v-if="typeof flow === 'string'">
               <span>
                 {{ flow }}
