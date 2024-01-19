@@ -170,13 +170,13 @@
               >
                 <div class="sub-img-wrapper">
                   <nut-avatar
-                    class="sub-item-customer-icon"
+                    :class="{ 'sub-item-customer-icon': !isIconColor }"
                     v-if="item[2]"
                     size="32"
                     :url="item[2]"
                     bg-color=""
                   ></nut-avatar>
-                  <span>{{ item[1] }}</span>
+                  <span>&nbsp;{{ item[1] }}</span>
                 </div>
               </nut-checkbox>
             </nut-checkboxgroup>
@@ -235,7 +235,8 @@
 <script lang="ts" setup>
   import { useArtifactsStore } from "@/store/artifacts";
   import { useSubsApi } from '@/api/subs';
-  import icon from '@/assets/icons/logo.svg';
+  import logoIcon from '@/assets/icons/logo.png';
+  import logoRedIcon from '@/assets/icons/logo-red.png';
   import { usePopupRoute } from '@/hooks/usePopupRoute';
   import { useAppNotifyStore } from '@/store/appNotify';
   import { useGlobalStore } from '@/store/global';
@@ -275,7 +276,7 @@
   const { showNotify } = useAppNotifyStore();
 
   const globalStore = useGlobalStore();
-  const { bottomSafeArea, isEditorCommon } = storeToRefs(globalStore);
+  const { bottomSafeArea, isEditorCommon, isDefaultIcon, isIconColor } = storeToRefs(globalStore);
   const padding = bottomSafeArea.value + 'px';
 
   const sub = computed(() => subsStore.getOneSub(configName));
@@ -286,7 +287,7 @@
       return [
         item.name,
         item.displayName || item['display-name'] || item.name,
-        item.icon || icon,
+        item.icon || (isDefaultIcon.value ? logoIcon : logoRedIcon),
       ];
     });
   });
@@ -295,6 +296,7 @@
   usePopupRoute(compareTableIsVisible);
   const compareData = ref();
 
+  let scrollTop = 0
   const isInit = ref(false);
   const ruleForm = ref<any>(null);
   const actionsChecked = reactive([]);
@@ -415,7 +417,20 @@
   };
 
   const closeCompare = () => {
+    document.querySelector('html').style['overflow-y'] = '';
+    document.querySelector('html').style.height = '';
+    document.body.style.height = '';
+    document.body.style['overflow-y'] = '';
+    (document.querySelector('#app') as HTMLElement).style['overflow-y'] = '';
+    (document.querySelector('#app') as HTMLElement).style.height = '';
+    
     compareTableIsVisible.value = false;
+
+    window.scrollTo({
+        top: scrollTop,
+        behavior: "instant" as any
+    });
+
     router.back();
   };
 
@@ -453,6 +468,18 @@
       const res = await subsApi.compareSub(type, data);
       if (res?.data?.status === 'success') {
         compareData.value = res.data.data;
+
+        scrollTop = document.documentElement.scrollTop || document.body.scrollTop
+
+        globalStore.setSavedPositions(route.path, { left: 0, top: scrollTop })
+
+        document.querySelector('html').style['overflow-y'] = 'hidden';
+        document.querySelector('html').style.height = '100%';
+        document.body.style.height = '100%';
+        document.body.style['overflow-y'] = 'hidden';
+        (document.querySelector('#app') as HTMLElement).style['overflow-y'] = 'hidden';
+        (document.querySelector('#app') as HTMLElement).style.height = '100%';
+
         compareTableIsVisible.value = true;
         Toast.hide('compare');
       }

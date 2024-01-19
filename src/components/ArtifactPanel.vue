@@ -99,24 +99,34 @@
         ></nut-cascader>
 
       </nut-form-item>
-      <nut-form-item v-if="sourceInput && ['subscription', 'collection'].includes(editPanelData.type) " :label="$t(`syncPage.addArtForm.platform.label`)">
-        <nut-radiogroup
-          direction="horizontal"
-          v-model="editPanelData.platform"
-          class="artifact-radio-group"
-        >
-          <nut-radio label="Stash">Stash</nut-radio>
-          <nut-radio label="ClashMeta">Clash.Meta(mihomo)</nut-radio>
-          <nut-radio label="Clash">Clash</nut-radio>
-          <nut-radio label="Surfboard">Surfboard</nut-radio>
-          <nut-radio label="Surge">Surge</nut-radio>
-          <nut-radio label="Loon">Loon</nut-radio>
-          <nut-radio label="ShadowRocket">Shadowrocket</nut-radio>
-          <nut-radio label="QX">Quantumult X</nut-radio>
-          <nut-radio label="sing-box">sing-box</nut-radio>
-          <nut-radio label="V2Ray">V2Ray</nut-radio>
-        </nut-radiogroup>
-      </nut-form-item>
+      <template v-if="sourceInput && ['subscription', 'collection'].includes(editPanelData.type)">
+        <div class="include-unsupported-proxy-wrapper">
+          <div class="label" @click="includeUnsupportedProxyTips">
+            <p>{{ $t(`syncPage.addArtForm.includeUnsupportedProxy.label`) }}</p>
+            <nut-icon name="tips"></nut-icon>
+          </div>
+          <nut-switch v-model="editPanelData.includeUnsupportedProxy"/>
+        </div>
+
+        <nut-form-item :label="$t(`syncPage.addArtForm.platform.label`)">
+          <nut-radiogroup
+            direction="horizontal"
+            v-model="editPanelData.platform"
+            class="artifact-radio-group"
+          >
+            <nut-radio label="Stash">Stash</nut-radio>
+            <nut-radio label="ClashMeta">Clash.Meta(mihomo)</nut-radio>
+            <nut-radio label="Clash">Clash</nut-radio>
+            <nut-radio label="Surfboard">Surfboard</nut-radio>
+            <nut-radio label="Surge">Surge</nut-radio>
+            <nut-radio label="Loon">Loon</nut-radio>
+            <nut-radio label="ShadowRocket">Shadowrocket</nut-radio>
+            <nut-radio label="QX">Quantumult X</nut-radio>
+            <nut-radio label="sing-box">sing-box</nut-radio>
+            <nut-radio label="V2Ray">V2Ray</nut-radio>
+          </nut-radiogroup>
+        </nut-form-item>
+      </template>
     </nut-form>
   </nut-dialog>
 </template>
@@ -159,6 +169,7 @@
     source: '',
     type: 'file',
     platform: 'Stash',
+    includeUnsupportedProxy: false,
   });
 
   const sourceSelectorIsVisible = ref(false);
@@ -298,6 +309,20 @@
     ruleForm.value.validate(prop);
   };
 
+  const includeUnsupportedProxyTips = () => {
+    const includeUnsupportedProxyTipsTitle = t(`syncPage.addArtForm.includeUnsupportedProxy.tips.title`)
+    const includeUnsupportedProxyTipsContent = t(`syncPage.addArtForm.includeUnsupportedProxy.tips.content`)
+    Dialog({
+      title: includeUnsupportedProxyTipsTitle,
+      content: includeUnsupportedProxyTipsContent,
+      popClass: 'auto-dialog',
+      okText: 'OK',
+      noCancelBtn: true,
+      closeOnPopstate: true,
+      lockScroll: false,
+    });
+  };
+
   watchEffect(() => {
     if (!isInit.value && name) {
       const artifact = artifactsStore.artifacts.find(art => art.name === name);
@@ -316,8 +341,22 @@
 <style lang="scss">
 
   .artifact-panel {
+    .include-unsupported-proxy-wrapper {
+      flex-direction: row;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      padding: 0 8px 0 8px;
+      .label {
+        color: var(--comment-text-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
     .nut-dialog {
-      width: 83vw;
+      width: 88vw;
 
       .nut-dialog__content {
         max-height: 72vh !important;

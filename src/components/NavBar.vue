@@ -19,8 +19,8 @@
       </nut-navbar>
     </nav>
   </div>
-
-  <nut-popup lock-scroll pop-class="nav-bar-lang-switch-popup" position="top" v-model:visible="showLangSwitchPopup"
+  <!-- lock-scroll  -->
+  <nut-popup pop-class="nav-bar-lang-switch-popup" position="top" v-model:visible="showLangSwitchPopup"
     z-index="1000">
     <nut-cell-group>
       <div style="
@@ -95,7 +95,15 @@ const changeLang = (type: string) => {
 
 const back = () => {
   if (isNeedBack.value) {
-    router.back();
+    try {
+      if (router.options.history.state.back) {
+        router.back();
+      } else {
+        router.push('/');
+      }
+    } catch (error) {
+      router.push('/');
+    }
   }
 };
 const setSimpleMode = (isSimpleMode: boolean) => {

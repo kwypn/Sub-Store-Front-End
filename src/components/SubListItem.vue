@@ -192,7 +192,8 @@
 
 <script lang="ts" setup>
   import { useSubsApi } from '@/api/subs';
-  import icon from '@/assets/icons/logo.svg';
+  import logoIcon from '@/assets/icons/logo.png';
+  import logoRedIcon from '@/assets/icons/logo-red.png';
   import PreviewPanel from '@/components/PreviewPanel.vue';
   import { usePopupRoute } from '@/hooks/usePopupRoute';
   import { useAppNotifyStore } from '@/store/appNotify';
@@ -208,7 +209,7 @@
   import { computed, createVNode, ref, toRaw } from 'vue';
   import useV3Clipboard from 'vue-clipboard3';
   import { useI18n } from 'vue-i18n';
-  import { useRouter } from 'vue-router';
+  import { useRouter, useRoute } from 'vue-router';
   import { useHostAPI } from '@/hooks/useHostAPI';
 
   const { copy, isSupported } = useClipboard();
@@ -224,6 +225,8 @@
   }>();
   // console.log('props.disabled')
   // console.log(props.disabled)
+  let scrollTop = 0;
+  
   const compareTableIsVisible = ref(false);
   usePopupRoute(compareTableIsVisible);
 
@@ -232,6 +235,7 @@
   const swipeIsOpen = ref(false);
   const compareData = ref();
   const router = useRouter();
+  const route = useRoute();
   const globalStore = useGlobalStore();
   const subsStore = useSubsStore();
   const subsApi = useSubsApi();
@@ -241,6 +245,7 @@
     isLeftRight,
     isIconColor,
     isSimpleReicon,
+    isDefaultIcon,
   } = storeToRefs(globalStore);
 
   const displayName =
@@ -248,6 +253,9 @@
 
   const name = props[props.type].name;
   const { flows } = storeToRefs(subsStore);
+  const icon = computed(() => {
+    return isDefaultIcon.value ? logoIcon : logoRedIcon;
+  })
   const collectionDetail = computed(() => {
     const nameList = props?.collection.subscriptions || [];
     if (nameList.length === 0) {
@@ -326,7 +334,20 @@
   });
 
   const closeCompare = () => {
+    document.querySelector('html').style['overflow-y'] = '';
+    document.querySelector('html').style.height = '';
+    document.body.style.height = '';
+    document.body.style['overflow-y'] = '';
+    (document.querySelector('#app') as HTMLElement).style['overflow-y'] = '';
+    (document.querySelector('#app') as HTMLElement).style.height = '';
+    
     compareTableIsVisible.value = false;
+
+    window.scrollTo({
+        top: scrollTop,
+        behavior: "instant" as any
+    });
+
     router.back();
   };
 
@@ -338,6 +359,18 @@
     );
     if (res?.data?.status === 'success') {
       compareData.value = res.data.data;
+
+      scrollTop = document.documentElement.scrollTop || document.body.scrollTop
+
+      globalStore.setSavedPositions(route.path, { left: 0, top: scrollTop })
+
+      document.querySelector('html').style['overflow-y'] = 'hidden';
+      document.querySelector('html').style.height = '100%';
+      document.body.style.height = '100%';
+      document.body.style['overflow-y'] = 'hidden';
+      (document.querySelector('#app') as HTMLElement).style['overflow-y'] = 'hidden';
+      (document.querySelector('#app') as HTMLElement).style.height = '100%';
+      
       compareTableIsVisible.value = true;
       Toast.hide('compare');
     }
@@ -374,6 +407,11 @@
         type: props.type,
         general: t('subPage.panel.general'),
         notify: t('subPage.copyNotify.succeed'),
+        tipsTitle: t(`subPage.panel.tips.title`),
+        tipsContent: `${t('subPage.panel.tips.content')}\n${t('syncPage.addArtForm.includeUnsupportedProxy.tips.content')}`,
+        desc: t(`subPage.panel.tips.desc`),
+        tipsOkText: t(`subPage.panel.tips.ok`),
+        tipsCancelText: t(`subPage.panel.tips.cancel`),
       }),
       onOpened: () => swipe.value.close(),
       popClass: 'auto-dialog',
@@ -382,7 +420,7 @@
       noOkBtn: true,
       noCancelBtn: true,
       closeOnPopstate: true,
-      lockScroll: true,
+      lockScroll: false,
     });
   };
 
@@ -425,7 +463,7 @@
       cancelText: t('subPage.deleteSub.btn.cancel'),
       okText: t('subPage.deleteSub.btn.confirm'),
       closeOnPopstate: true,
-      lockScroll: true,
+      lockScroll: false,
     });
   };
 

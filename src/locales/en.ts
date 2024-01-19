@@ -146,6 +146,13 @@ export default {
     },
     panel: {
       general: 'General',
+      tips: {
+        ok: 'View Document',
+        cancel: 'Cancel',
+        desc: 'Subscription Link Parameters Description',
+        title: 'Subscription Link Parameters',
+        content: '"target=SurgeMac"\n+ ShadowsocksR/External Proxy Program\n\n"includeUnsupportedProxy=true"\nIncludes protocols not supported by the official/store version',
+      }
     },
   },
   editorPage: {
@@ -218,7 +225,7 @@ export default {
         },
         content: {
           label: 'Content',
-          placeholder: 'The content of the subscription',
+          placeholder: 'The content of the subscription: 1. Multiple single-line proxy protocols/JSON/URI 2. Complete Base64/YAML',
         },
         icon: {
           label: 'Icon',
@@ -299,8 +306,10 @@ export default {
         },
         'Resolve Domain Operator': {
           label: 'Resolve Domain',
-          des: 'Providers(IPv4 only. Can be controlled by the node field "no-resolve")',
+          des: 'Providers(can be controlled by the node field "no-resolve")',
           options: ['Google', 'IP-API', 'Cloudflare', 'Ali', 'Tencent'],
+          types: ['IPv4', 'IPv6'],
+          filters: ['Disabled', 'Remove Failed', 'IP Only', 'IPv4 Only', 'IPv6 Only'],
           tipsTitle: 'domain Tips',
           tipsDes: '节点域名解析操作说明',
         },
@@ -504,7 +513,7 @@ export default {
     },
     deleteArt: {
       title: 'Delete Sync Configuration',
-      desc: 'Are you sure to delete sync configuration {displayName}? \nDeleted cannot be restored!\n\n⚠️ If the current item has been synced before, an attempt will be made to delete the gist file.',
+      desc: 'Are you sure to delete sync configuration {displayName}? \nDeleted cannot be restored!\n\n⚠️ If the current item has been synced before, an attempt will be made to delete gist files with the original filename and the encoded filename.',
       succeedNotify: 'Successfully deleted!',
       btn: {
         confirm: 'Delete',
@@ -535,6 +544,13 @@ export default {
         label: 'Source',
         isRequired: 'Source is required',
         placeholder: 'Please select a source',
+      },
+      includeUnsupportedProxy: {
+        label: 'Includes protocols not supported by the official/store version',
+        tips: {
+          title: 'Includes protocols not supported by the official/store version',
+          content: 'sing-box: +ShadowsocksR\nQuantumult X: +VLESS'
+        }
       },
       platform: {
         label: 'Target Platform',
@@ -609,6 +625,7 @@ export default {
     simple: 'Simple Mode',
     islr: 'Card right swipe to call out',
     isIC: 'Use original color for custom icons',
+    isDefaultIcon: 'Restore default icon',
     isEditorCommon: 'Show editor common settings',
     isSimpleReicon: 'Show items refresh button',
     showFloatingRefreshButton: 'Show floating refresh button',

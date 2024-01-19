@@ -13,6 +13,7 @@ export const useGlobalStore = defineStore('globalStore', {
       isFlowFetching: true,
       fetchResult: false,
       bottomSafeArea: 0,
+      isDefaultIcon: false,
       isDarkMode: false,
       env: {},
       isSimpleMode: localStorage.getItem('isSimpleMode') === '1',
@@ -24,6 +25,7 @@ export const useGlobalStore = defineStore('globalStore', {
       istabBar: localStorage.getItem('istabBar') === '1',
       istabBar2: localStorage.getItem('istabBar2') === '1',
       ishostApi: getHostAPIUrl(),
+      savedPositions: {},
     };
   },
   getters: {},
@@ -66,6 +68,14 @@ export const useGlobalStore = defineStore('globalStore', {
         localStorage.removeItem('iconColor');
       }
       this.isIconColor = iconColor;
+    },
+    setIsDefaultIcon(isDefaultIcon: boolean) {
+      if (isDefaultIcon) {
+        localStorage.setItem('isDefaultIcon', '1');
+      } else {
+        localStorage.removeItem('isDefaultIcon');
+      }
+      this.isDefaultIcon = isDefaultIcon;
     },
     setEditorCommon(isEditorCommon: boolean) {
       if (!isEditorCommon) {
@@ -117,6 +127,9 @@ export const useGlobalStore = defineStore('globalStore', {
       if (res?.data?.status === 'success') {
         this.env = res.data.data;
       }
+    },
+    setSavedPositions(key: string, value: any) {
+      this.savedPositions[key] = value;
     },
   },
 });

@@ -1,9 +1,9 @@
 <template>
   <nut-swipe class="sub-item-swipe" ref="swipe" :disabled="$props.disabled">
     <div class="sub-item-wrapper" :style="{'padding': isSimpleMode ? '9px' : '16px' }" @click.stop="previewSource">
-      <a class="sub-img-wrappers" :href="artifact.url" target="_blank">
+      <div class="sub-img-wrappers" @click.stop="openUrl">
         <nut-avatar :class="{ 'sub-item-customer-icon': !isIconColor }"  :size="isSimpleMode ? '36' : '48'" :url="icon" bg-color=""></nut-avatar>
-      </a>
+      </div>
       <div class="sub-item-content">
         <div class="sub-item-title-wrapper">
           <h3 class="sub-item-title">
@@ -88,7 +88,8 @@
 </template>
 
 <script lang="ts" setup>
-import logoIcon from '@/assets/icons/logo.svg';
+import logoIcon from '@/assets/icons/logo.png';
+import logoRedIcon from '@/assets/icons/logo-red.png';
 import singboxIcon from '@/assets/icons/sing-box.png';
 import clashIcon from '@/assets/icons/clash.png';
 import clashMetaIcon from '@/assets/icons/clashmeta.png';
@@ -124,7 +125,7 @@ import { useGlobalStore } from '@/store/global';
 import { useHostAPI } from '@/hooks/useHostAPI';
 const globalStore = useGlobalStore();
 
-const { isLeftRight, isSimpleMode, isIconColor } = storeToRefs(globalStore);
+const { isLeftRight, isSimpleMode, isIconColor, isDefaultIcon } = storeToRefs(globalStore);
 const { copy, isSupported } = useClipboard();
 const { toClipboard: copyFallback } = useV3Clipboard();
 
@@ -210,18 +211,40 @@ const icon = computed(() => {
     case 'Surfboard':
       return isIconColor.value ? surfboardColorIcon: surfboardIcon;
     default:
-      return logoIcon;
+      return isDefaultIcon.value ? logoIcon : logoRedIcon;
   }
 });
 
 const sourceUrl = computed(() => {
+  if (!artifact.value.type) {
+    return ''
+  }
+  if (artifact.value.type === 'file') {
+    const path = `/api/file/${encodeURIComponent(artifact.value.source)}`;
+    const url = `${host.value}${path}`;
+    return url
+  }
   const urlTarget: string = artifact.value.platform !== null ? `?target=${artifact.value.platform}` : '';
+  let urlIncludeUnsupportedProxy = artifact.value.includeUnsupportedProxy ? `includeUnsupportedProxy=true` : '';
+  if (urlTarget && urlIncludeUnsupportedProxy) {
+    urlIncludeUnsupportedProxy = `&${urlIncludeUnsupportedProxy}`
+  } else if (urlIncludeUnsupportedProxy){
+    urlIncludeUnsupportedProxy = `?${urlIncludeUnsupportedProxy}`
+  }
   return `${host.value}/download/${
     artifact.value.type === 'subscription' ? '' : 'collection/'
-  }${encodeURIComponent(artifact.value.source)}${urlTarget}`;
+  }${encodeURIComponent(artifact.value.source)}${urlTarget}${urlIncludeUnsupportedProxy}`;
 });
 
+const openUrl = () => {
+  if (artifact.value.url) {
+    window.open(artifact.value.url); 
+  }
+}
 const previewSource = () => {
+  if (!sourceUrl.value) {
+    return
+  }
   Dialog({
     title: t('tabBar.sub'),
     content: sourceUrl.value,
@@ -233,7 +256,7 @@ const previewSource = () => {
     popClass: 'auto-dialog',
     okText: t('editorPage.subConfig.basic.previewSwitch'),
     closeOnPopstate: true,
-    lockScroll: true,
+    lockScroll: false,
   });
   
 };
@@ -359,7 +382,7 @@ const onClickDelete = () => {
     cancelText: t('syncPage.deleteArt.btn.cancel'),
     okText: t('syncPage.deleteArt.btn.confirm'),
     closeOnPopstate: true,
-    lockScroll: true,
+    lockScroll: false,
   });
 };
 

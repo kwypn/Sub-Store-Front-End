@@ -1,5 +1,6 @@
 interface GlobalStoreState {
   isLoading: boolean;
+  isDefaultIcon: boolean;
   isFlowFetching: boolean;
   fetchResult: boolean;
   bottomSafeArea: number;
@@ -14,6 +15,7 @@ interface GlobalStoreState {
   istabBar: boolean;
   istabBar2: boolean;
   ishostApi: string;
+  savedPositions: any;
 }
 
 interface ENV {

@@ -145,6 +145,13 @@ export default {
     },
     panel: {
       general: '通用订阅',
+      tips: {
+        ok: '查看文档',
+        cancel: '取消',
+        desc: '订阅链接参数说明',
+        title: '订阅链接参数',
+        content: '"target=SurgeMac"\n+ ShadowsocksR/External Proxy Program\n\n"includeUnsupportedProxy=true" 包含官方/商店版不支持的协议',
+      }
     },
   },
   editorPage: {
@@ -218,7 +225,7 @@ export default {
         },
         content: {
           label: '内容',
-          placeholder: '填入订阅内容',
+          placeholder: '填入订阅内容: 1. 多个单行的代理协议/JSON/URI 2. 完整 Base64/YAML',
         },
         icon: {
           label: '图标链接',
@@ -307,8 +314,10 @@ export default {
         },
         'Resolve Domain Operator': {
           label: '域名解析',
-          des: '提供商(仅 IPv4. 可由节点字段 "no-resolve" 控制)',
+          des: '提供商(可由节点字段 "no-resolve" 控制)',
           options: ['Google', 'IP-API', 'Cloudflare', 'Ali', 'Tencent'],
+          types: ['IPv4', 'IPv6'],
+          filters: ['不过滤', '移除失败', '只保留 IP', '只保留 IPv4', '只保留 IPv6'],
           tipsTitle: '域名解析操作提示',
           tipsDes: '将节点域名解析成为 IP 地址，减少一次额外的 DNS 请求',
         },
@@ -506,7 +515,7 @@ export default {
     },
     deleteArt: {
       title: '删除同步配置',
-      desc: '是否确认删除同步配置 {displayName}？删除后不可恢复！\n\n⚠️ 若当前同步配置进行过同步, 将尝试删除对应的 gist 文件',
+      desc: '是否确认删除同步配置 {displayName}？删除后不可恢复！\n\n⚠️ 若当前同步配置进行过同步, 将尝试原文件名和编码后的文件名对应的文件',
       succeedNotify: '删除同步配置成功！',
       btn: {
         confirm: '确认删除',
@@ -540,6 +549,13 @@ export default {
       platform: {
         label: '目标平台',
         isRequired: '目标平台不能为空',
+      },
+      includeUnsupportedProxy: {
+        label: '包含官方/商店版不支持的协议',
+        tips: {
+          title: '包含官方/商店版不支持的协议',
+          content: 'sing-box: +ShadowsocksR\nQuantumult X: +VLESS'
+        }
       },
       pop: {
         errorTitle: '提交出错',
@@ -613,6 +629,7 @@ export default {
     simple: '简洁模式',
     islr: '卡片右滑呼出',
     isIC: '自定义图标使用原始颜色',
+    isDefaultIcon: '恢复默认图标',
     isEditorCommon: '展示编辑页常用配置',
     isSimpleReicon: '展示订阅刷新按钮',
     showFloatingRefreshButton: '显示悬浮刷新按钮',
