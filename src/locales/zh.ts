@@ -122,6 +122,7 @@ export default {
       flow: '已用/总流量',
       expires: '到期时间',
       noRecord: '刷新后可获取流量情况',
+      noFlow: '不查询流量',
       noFlowInfo: '无流量信息',
       noExpiresInfo: '无有效期信息',
     },
@@ -622,10 +623,6 @@ export default {
   moreSettingPage: {
     moreSettingTitle: '更多设置',
     other: '其他设置',
-    auto: '启动时自动下载 Gist 配置',
-    desc: `注意事项：开启此开关会在打开 SubStore 时自动下载 Gist 远程配置并刷新。
-          刷新操作会覆盖当前配置，为防止数据丢失，可在修改后手动上传配置。
-          打开开关不会上传，只有在重启后才会下载配置。`,
     simple: '简洁模式',
     islr: '卡片右滑呼出',
     isIC: '自定义图标使用原始颜色',

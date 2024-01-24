@@ -9,6 +9,7 @@ interface SettingsBase {
 }
 
 interface SettingsPostData {
+  syncPlatform?: string;
   gistToken?: string;
   githubUser?: string;
   defaultUserAgent?: string;
@@ -19,7 +20,6 @@ interface SettingsPostData {
     dark: CustomTheme;
     light: CustomTheme;
   };
-  autoDownloadGistSync?: boolean;
 }
 
 interface StoragePostData {

@@ -123,6 +123,7 @@ export default {
       flow: 'Usage / Total',
       expires: 'Expires',
       noRecord: 'Refresh to get usage',
+      noFlow: 'No flow',
       noFlowInfo: 'No flow info',
       noExpiresInfo: 'No expires info',
     },
@@ -502,7 +503,7 @@ export default {
     syncSwitcher: 'Enable Sync',
     syncAllSucceed: 'Sync succeed',
     emptySub: {
-      title: "You haven' add any synced artifacts",
+      title: "You haven't add any synced artifacts",
       desc: 'You can access the artifact anywhere via Gist',
       btn: 'Add an artifact',
     },
@@ -620,8 +621,6 @@ export default {
   moreSettingPage: {
     moreSettingTitle: 'More Setting',
     other: 'Other',
-    auto: 'Auto Download Gist config on startup',
-    desc: 'Note: Turning on this switch will automatically download and refresh the Gist remote configuration when SubStore is opened. The refresh operation overwrites the current configuration. To prevent data loss, you can manually upload the configuration after the modification. The switch will not be uploaded, and the configuration will be downloaded only after the restart.',
     simple: 'Simple Mode',
     islr: 'Card right swipe to call out',
     isIC: 'Use original color for custom icons',
