@@ -7,6 +7,8 @@ export default {
     unknownType: 'Unknown Type',
     unknownSource: 'Unknown Source',
     unknown: 'Unknown',
+    all: 'All',
+    untagged: 'Untagged',
   },
   globalNotify: {
     refresh: {
@@ -28,6 +30,7 @@ export default {
       file: 'File',
       sync: 'Sync',
       my: 'My Profile',
+      editScript: 'Script Edit',
       subEditor: 'Subscription Editor',
       fileEditor: 'File Editor',
       themeSetting: 'Theme Setting',
@@ -122,6 +125,8 @@ export default {
       loading: 'Loading...',
       flow: 'Usage / Total',
       expires: 'Expires',
+      remainingDays: 'Remaining Reset Days',
+      remainingDaysUnit: '',
       noRecord: 'Refresh to get usage',
       noFlow: 'No flow',
       noFlowInfo: 'No flow info',
@@ -141,9 +146,9 @@ export default {
       failed: 'Failed to copy subscription link!\n{e}',
     },
     copyConfigNotify: {
-      loading: 'Copying...',
-      succeed: 'Successfully copied config!',
-      failed: 'Failed to copy config!\n{e}',
+      loading: 'Cloning...',
+      succeed: 'Successfully cloned config!',
+      failed: 'Failed to clone config!\n{e}',
     },
     panel: {
       general: 'General',
@@ -206,6 +211,10 @@ export default {
           label: 'Display Name',
           placeholder: 'The display name',
         },
+        tag: {
+          label: 'Tag(s)',
+          placeholder: 'The tag(s) (separated by comma) will be used for grouping.',
+        },
         source: {
           label: 'Source',
           remote: 'Remote URL',
@@ -217,7 +226,7 @@ export default {
         },
         url: {
           label: 'URL',
-          placeholder: 'Subscription URL (please separate multiple subscriptions with a new line). Supported parameters: noFlow - do not query for flow, noCache - do not use cache. For example: http://a.com?token=1#noFlow&noCache',
+          placeholder: 'Subscription URL (please separate multiple subscriptions with a new line). Supported parameters: validCheck - error will be reported when expired or there is no remaining traffic, flowUserAgent - the User-Agent for fetching subscription usage info, noFlow - do not query for flow, hideExpire - hide expiration time, noCache - do not use cache, resetDay - the day when monthly data usage resets, startDate - subscription start date, cycleDays - reset cycle (in days). For example: http://a.com?token=1#cycleDays=31&startDate=2024-06-04 or http://a.com?token=1#resetDay=15',
           isEmpty: 'URL cannot be empty',
           isIllegal: 'Invalid URL',
         },
@@ -239,6 +248,14 @@ export default {
           label: 'User-Agent',
           placeholder:
             'The User-Agent for downloading resource(s)',
+        },
+        subUserinfo: {
+          label: 'Subscription-Userinfo',
+          placeholder: 'Set subscription usage info manually',
+        },
+        proxy: {
+          label: 'Proxy/Policy',
+          placeholder: 'The proxy/node/policy for downloading resource(s)',
         },
       },
       commonOptions: {
@@ -289,14 +306,19 @@ export default {
           cancel: 'Cancel',
           confirm: 'Confirm',
         },
+        pasteAction: {
+          label: 'Import Data From Clipboard',
+          placeholder: 'Failed to read the clipboard automatically, please paste the data manually in this text box.'
+        },
       },
       nodeActions: {
         'Flag Operator': {
           label: 'Flags Options',
           des: 'Mode',
           options: ['Add Flag', 'Remove Flag'],
+          twOptions: ['⇒ 🇨🇳', '⇒ 🇼🇸', 'Unchanged'],
           tipsTitle: 'flags Tips',
-          tipsDes: '国旗操作说明',
+          tipsDes: '旗帜操作说明',
         },
         'Sort Operator': {
           label: 'Node Sort',
@@ -309,8 +331,9 @@ export default {
           label: 'Resolve Domain',
           des: 'Providers(can be controlled by the node field "no-resolve")',
           options: ['Google', 'IP-API', 'Cloudflare', 'Ali', 'Tencent'],
-          types: ['IPv4', 'IPv6'],
+          types: ['IPv4', 'IPv6', 'IP4P'],
           filters: ['Disabled', 'Remove Failed', 'IP Only', 'IPv4 Only', 'IPv6 Only'],
+          cache: ['Enabled', 'Disabled'],
           tipsTitle: 'domain Tips',
           tipsDes: '节点域名解析操作说明',
         },
@@ -335,6 +358,7 @@ export default {
             'Hysteria',
             'Hysteria 2',
             'WireGuard',
+            'SSH',
             'External Proxy Program',
           ],
           tipsTitle: 'Node Type Filter Tips',
@@ -415,10 +439,12 @@ export default {
       gistToken: 'Please input Gist Token',
       defaultUserAgent: 'Please input Default User-Agent',
       defaultTimeout: 'Please input Default Timeout (in milliseconds)',
+      cacheThreshold: 'Please input Cache Threshold (in KB)',
       noGithubUser: 'Not set GitHub username',
       noGistToken: 'Not set Gist Token',
       noDefaultUserAgent: 'Not set default user-agent',
-      noDefaultTimeout: 'Not set default timeout'
+      noDefaultTimeout: 'Not set default timeout',
+      noCacheThreshold: 'Not set cache threshold',
     },
     btn: {
       download: 'Download',
@@ -452,10 +478,12 @@ export default {
     config: 'Configuration',
     storage: {
       gist: {
-        label: 'Gist'
+        label: 'Gist',
+        info: 'Sync file/subscription(s) to Gist in "Sync Page"'
       },
       manual: {
         label: 'Manual',
+        info: '',
         desc: 'To prevent accidents, backup your data before restoring.',
         backup: 'Backup',
         restore: 'Restore',
@@ -508,7 +536,7 @@ export default {
       btn: 'Add an artifact',
     },
     detail: {
-      firstLine: 'Type: {type}, Sub: {name}',
+      firstLine: 'Type: {type}, Source: {name}',
       secondLine: 'Last Time: {time}',
       notSync: 'Not sync yet',
     },
@@ -598,7 +626,7 @@ export default {
   apiSettingPage: {
     apiSettingTitle: 'Backend Setting',
     apiSettingDesc0: `1. When the backend server address is https://api.com, an attempt is made to request https://api.com/api/utils/env to verify backend availability. When the backend server address cannot be added, try accessing this address first.`,
-    apiSettingDesc1: `2. HTTPS front-end cannot request non-local HTTP backend. Please configure a reverse proxy or host your own HTTP front-end on your LAN.`,
+    apiSettingDesc1: `2. HTTPS front-end cannot request non-local HTTP backend(Some browsers also cannot access the local HTTP backend.). Please configure a reverse proxy or host your own HTTP front-end on your LAN.`,
     apiSettingDesc2: `Add the backend server address, such as the backend service built on server/NAS/Android/cloud platform. You can refer to XiaoYi's tutorial on setting up a backend: `,
     currentApi: {
       title: 'Current Backend',
@@ -619,7 +647,30 @@ export default {
     },
   },
   moreSettingPage: {
+    subProgress: {
+      title: 'Subscription Progress Style',
+      hidden: 'Hidden',
+      background: 'Show As Background',
+    },
     moreSettingTitle: 'More Setting',
+    clearData: {
+      label: 'Clear Backend Data',
+      title: 'Clear Backend Data',
+      content: 'Are you sure?',
+      conform: 'Confirm',
+      cancel: 'Cancel',
+      succeed: 'Clear succeed',
+      failed: 'Clear failed',
+    },
+    clearFrontEndData: {
+      label: 'Clear Front-End Data',
+      title: 'Clear Front-End Data',
+      content: 'Are you sure?',
+      conform: 'Confirm',
+      cancel: 'Cancel',
+      succeed: 'Clear succeed',
+      failed: 'Clear failed',
+    },
     other: 'Other',
     simple: 'Simple Mode',
     islr: 'Card right swipe to call out',
@@ -648,7 +699,6 @@ export default {
       fe: 'Front-End',
       be: 'Back-End',
       module: 'Module',
-      mock: 'Mock Module',
       team: 'Project Team',
       link: 'View on Github',
     },

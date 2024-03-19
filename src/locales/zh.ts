@@ -7,6 +7,8 @@ export default {
     unknownType: '未知类型',
     unknownSource: '未知来源',
     unknown: '未知',
+    all: '全部',
+    untagged: '未分组',
   },
   globalNotify: {
     refresh: {
@@ -28,6 +30,7 @@ export default {
       file: '文件管理',
       sync: '同步',
       my: '我的',
+      editScript: '脚本编辑',
       subEditor: '订阅编辑',
       fileEditor: '文件编辑',
       themeSetting: '主题设置',
@@ -120,7 +123,9 @@ export default {
       local: '本地订阅',
       loading: '加载中...',
       flow: '已用/总流量',
-      expires: '到期时间',
+      expires: '到期',
+      remainingDays: '重置',
+      remainingDaysUnit: ' 天',
       noRecord: '刷新后可获取流量情况',
       noFlow: '不查询流量',
       noFlowInfo: '无流量信息',
@@ -140,9 +145,9 @@ export default {
       failed: '复制订阅链接失败\n{e}',
     },
     copyConfigNotify: {
-      loading: '拷贝配置中...',
-      succeed: '配置拷贝成功！',
-      failed: '配置拷贝失败！\n{e}',
+      loading: '克隆配置中...',
+      succeed: '配置克隆成功！',
+      failed: '配置克隆失败！\n{e}',
     },
     panel: {
       general: '通用订阅',
@@ -206,6 +211,10 @@ export default {
           label: '显示名称',
           placeholder: '输入展示的名称',
         },
+        tag: {
+          label: '标签',
+          placeholder: '标签(用 , 分隔) 将用于分组',
+        },
         source: {
           label: '来源',
           remote: '远程订阅',
@@ -217,7 +226,7 @@ export default {
         },
         url: {
           label: '链接',
-          placeholder: '订阅链接(多个订阅请换行) 支持参数: noFlow 不查询流量, noCache 不使用缓存. 例: http://a.com?token=1#noFlow&noCache',
+          placeholder: '订阅链接(多个订阅请换行) 支持参数: validCheck 过期或无剩余流量时报错, flowUserAgent 查询流量时使用的 User-Agent, noFlow 不查询流量, hideExpire 隐藏到期, noCache 不使用缓存, resetDay 每月流量重置日, startDate 订阅开始日期, cycleDays 订阅重置周期(单位: 天). 例: http://a.com?token=1#cycleDays=31&startDate=2024-06-04 或 http://a.com?token=1#resetDay=15',
           isEmpty: '订阅链接不能为空',
           isIllegal: '订阅链接格式非法',
         },
@@ -238,6 +247,14 @@ export default {
         ua: {
           label: 'User-Agent',
           placeholder: '下载时使用的 UA，不填使用默认',
+        },
+        subUserinfo: {
+          label: '订阅流量信息',
+          placeholder: '手动设置订阅流量信息',
+        },
+        proxy: {
+          label: '代理/策略',
+          placeholder: '通过代理/节点/策略获取订阅',
         },
       },
       commonOptions: {
@@ -288,6 +305,10 @@ export default {
           cancel: '取消',
           confirm: '确认',
         },
+        pasteAction: {
+          label: '从剪贴板导入',
+          placeholder: '自动读取剪贴板失败, 请在此文本框内手动粘贴数据'
+        },
       },
       nodeActions: {
         'Script Operator': {
@@ -300,11 +321,12 @@ export default {
           tipsDes: '使用一段 JavaScript 脚本来修改节点信息',
         },
         'Flag Operator': {
-          label: '国旗操作',
+          label: '旗帜操作',
           des: '工作模式',
           options: ['添加', '移除'],
-          tipsTitle: '国旗操作提示',
-          tipsDes: '为节点添加或者移除国旗',
+          twOptions: ['替换为 🇨🇳', '替换为 🇼🇸', '保持不变'],
+          tipsTitle: '旗帜操作提示',
+          tipsDes: '为节点添加或者移除旗帜\n\n免责声明: 旗帜 指 Emoji 旗帜, 不包含任何政治意味',
         },
         'Sort Operator': {
           label: '节点排序',
@@ -317,8 +339,9 @@ export default {
           label: '域名解析',
           des: '提供商(可由节点字段 "no-resolve" 控制)',
           options: ['Google', 'IP-API', 'Cloudflare', 'Ali', 'Tencent'],
-          types: ['IPv4', 'IPv6'],
+          types: ['IPv4', 'IPv6', 'IP4P'],
           filters: ['不过滤', '移除失败', '只保留 IP', '只保留 IPv4', '只保留 IPv6'],
+          cache: ['启用', '禁用'],
           tipsTitle: '域名解析操作提示',
           tipsDes: '将节点域名解析成为 IP 地址，减少一次额外的 DNS 请求',
         },
@@ -329,7 +352,7 @@ export default {
           tipsDes: '按照国家和区域过滤节点',
         },
         'Type Filter': {
-          label: '类型过滤',
+          label: '协议过滤',
           options: [
             'Shadowsocks',
             'ShadowsocksR',
@@ -343,6 +366,7 @@ export default {
             'Hysteria',
             'Hysteria 2',
             'WireGuard',
+            'SSH',
             'External Proxy Program',
           ],
           tipsTitle: '节点类型过滤操作提示',
@@ -417,10 +441,12 @@ export default {
       gistToken: '请输入 GitHub 令牌',
       defaultUserAgent: '请输入默认 User-Agent',
       defaultTimeout: '请输入默认超时(单位: 毫秒)',
+      cacheThreshold: '请输入缓存阈值(单位: KB)',
       noGithubUser: '未配置 GitHub 用户名',
       noGistToken: '未配置 GitHub 令牌',
       noDefaultUserAgent: '未配置默认 User-Agent',
-      noDefaultTimeout: '未配置默认超时'
+      noDefaultTimeout: '未配置默认超时',
+      noCacheThreshold: '未配置缓存阈值',
     },
     notify: {
       save: {
@@ -454,10 +480,12 @@ export default {
     config: '配置',
     storage: {
       gist: {
-        label: 'Gist 同步'
+        label: 'Gist 同步',
+        info: '可在同步配置中将文件/订阅同步到 Gist'
       },
       manual: {
         label: '手动管理',
+        info: '',
         desc: '为防止意外 请先备份数据 再进行恢复操作',
         backup: '备份',
         restore: '恢复',
@@ -510,7 +538,7 @@ export default {
       btn: '立即添加',
     },
     detail: {
-      firstLine: '类型：{type}，订阅：{name}',
+      firstLine: '类型：{type}，来源：{name}',
       secondLine: '上次同步：{time}',
       notSync: '从未同步',
     },
@@ -600,7 +628,7 @@ export default {
   apiSettingPage: {
     apiSettingTitle: '后端设置',
     apiSettingDesc0: `1. 后端地址为 https://api.com 时, 将尝试请求 https://api.com/api/utils/env 验证后端可用性. 当无法添加后端地址时, 可先尝试访问此地址`,
-    apiSettingDesc1: `2. HTTPS 前端无法请求非本地的 HTTP 后端. 请配置反代或在局域网自建 HTTP 前端. `,
+    apiSettingDesc1: `2. HTTPS 前端无法请求非本地的 HTTP 后端(部分浏览器上也无法访问本地 HTTP 后端). 请配置反代或在局域网自建 HTTP 前端. `,
     apiSettingDesc2: `3. 添加后端服务器地址，例如 服务器/NAS/Android/云平台 上搭建的后端服务。可以查看小一佬的后端搭建教程：`,
     currentApi: {
       title: '当前后端',
@@ -621,7 +649,30 @@ export default {
     },
   },
   moreSettingPage: {
+    subProgress: {
+      title: '订阅进度样式',
+      hidden: '不显示',
+      background: '显示为背景',
+    },
     moreSettingTitle: '更多设置',
+    clearData: {
+      label: '清除后端数据',
+      title: '清除后端数据',
+      content: '确定要清除数据吗?',
+      conform: '确定',
+      cancel: '取消',
+      succeed: '清除成功',
+      failed: '清除失败',
+    },
+    clearFrontEndData: {
+      label: '清除前端数据',
+      title: '清除前端数据',
+      content: '确定要清除前端数据吗?',
+      conform: '确定',
+      cancel: '取消',
+      succeed: '清除成功',
+      failed: '清除失败',
+    },
     other: '其他设置',
     simple: '简洁模式',
     islr: '卡片右滑呼出',
@@ -651,7 +702,6 @@ export default {
       fe: '前端',
       be: '后端',
       module: '模块',
-      mock: 'Mock 模块',
       team: '项目组',
       link: '在 GitHub 上查看',
     },

@@ -2,11 +2,15 @@
   <div class="my-page-wrapper">
     <div class="profile-block">
       <div class="radio-wrapper" >
+        <span v-for="i in [{value: 'gist'}, {value:'manual'}]" :class="{ 'tag': true, 'current': i.value === storageType }" @click="setTag(i.value)">{{$t(`myPage.storage.${i.value}.label`) }}</span>
+        <p class="storage-info">{{ $t(`myPage.storage.${storageType}.info`) }}</p>
+      </div>
+      <!-- <div class="radio-wrapper" >
         <nut-radiogroup v-model="storageType" direction="horizontal">
           <nut-radio shape="button" label="gist">{{ $t(`myPage.storage.gist.label`) }}</nut-radio>
           <nut-radio shape="button" label="manual">{{ $t(`myPage.storage.manual.label`) }}</nut-radio>
         </nut-radiogroup>
-      </div>
+      </div> -->
     
       <div class="info">
         <div v-if="storageType === 'manual'" class="avatar-wrapper">
@@ -176,6 +180,8 @@
             type="text"
             input-align="left"
             :left-icon="iconUA"
+            right-icon="tips"
+            @click-right-icon="uaTips"
           />
           <nut-input
             class="input"
@@ -187,6 +193,17 @@
             :left-icon="iconTimeout"
             right-icon="tips"
             @click-right-icon="timeoutTips"
+          />
+          <nut-input
+            class="input"
+            v-model="cacheThresholdInput"
+            :disabled="!isEditing"
+            :placeholder="$t(`myPage.placeholder.cacheThreshold`)"
+            type="number"
+            input-align="left"
+            :left-icon="iconMax"
+            right-icon="tips"
+            @click-right-icon="cacheThresholdTips"
           />
         </div>
       </div>
@@ -241,6 +258,7 @@ import avatar from "@/assets/icons/avatar.svg?url";
 import iconKey from "@/assets/icons/key-solid.png";
 import iconUser from "@/assets/icons/user-solid.png";
 import iconUA from "@/assets/icons/user-agent.svg";
+import iconMax from "@/assets/icons/max.svg";
 import iconTimeout from "@/assets/icons/timeout.svg";
 import { useAppNotifyStore } from "@/store/appNotify";
 import { useGlobalStore } from "@/store/global";
@@ -262,7 +280,7 @@ const router = useRouter();
 const { showNotify } = useAppNotifyStore();
 const { currentUrl: host } = useHostAPI();
 const settingsStore = useSettingsStore();
-const { githubUser, gistToken, syncTime, avatarUrl, defaultUserAgent, defaultTimeout, syncPlatform } =
+const { githubUser, gistToken, syncTime, avatarUrl, defaultUserAgent, defaultTimeout, cacheThreshold, syncPlatform } =
   storeToRefs(settingsStore);
 
 const displayAvatar = computed(() => {
@@ -289,6 +307,7 @@ const userInput = ref("");
 const tokenInput = ref("");
 const uaInput = ref("");
 const timeoutInput = ref("");
+const cacheThresholdInput = ref("");
 const isEditing = ref(false);
 const isEditLoading = ref(false);
 const isInit = ref(false);
@@ -304,6 +323,7 @@ const toggleEditMode = async () => {
       gistToken: tokenInput.value,
       defaultUserAgent: uaInput.value,
       defaultTimeout: timeoutInput.value,
+      cacheThreshold: cacheThresholdInput.value,
     });
     setDisplayInfo();
   } else {
@@ -312,6 +332,7 @@ const toggleEditMode = async () => {
     tokenInput.value = gistToken.value;
     uaInput.value = defaultUserAgent.value;
     timeoutInput.value = defaultTimeout.value;
+    cacheThresholdInput.value = cacheThreshold.value;
   }
   isEditLoading.value = false;
   isEditing.value = !isEditing.value;
@@ -354,8 +375,9 @@ const setDisplayInfo = () => {
   tokenInput.value = gistToken.value
     ? gistToken.value.slice(0, 6) + "************"
     : t(`myPage.placeholder.noGistToken`);
-    uaInput.value = defaultUserAgent.value || t(`myPage.placeholder.noDefaultUserAgent`);
-    timeoutInput.value = defaultTimeout.value || t(`myPage.placeholder.noDefaultTimeout`);
+  uaInput.value = defaultUserAgent.value || t(`myPage.placeholder.noDefaultUserAgent`);
+  timeoutInput.value = defaultTimeout.value || t(`myPage.placeholder.noDefaultTimeout`);
+  cacheThresholdInput.value = cacheThreshold.value || t(`myPage.placeholder.noCacheThreshold`);
 };
 
 // 同步 上传
@@ -395,6 +417,7 @@ const fileChange = async (event) => {
           type: "success",
           title: t(`myPage.notify.restore.succeed`),
         });
+        window.location.reload()
       } else {
         throw new Error('restore failed')
       }
@@ -447,15 +470,40 @@ const sync = async (query: "download" | "upload") => {
       type: "success",
       title: t(`myPage.notify.${query}.succeed`),
     });
+    if (query === "download") {
+      window.location.reload()
+    }
   }
 
   downloadIsLoading.value = false;
   uploadIsLoading.value = false;
 };
+const uaTips = () => {
+  Dialog({
+      title: '默认为 clash.meta',
+      content: '可尝试设置为 clash-verge/v1.5.1 等客户端的 User-Agent 让机场后端下发更多协议',
+      popClass: 'auto-dialog',
+      okText: 'OK',
+      noCancelBtn: true,
+      closeOnPopstate: true,
+      lockScroll: false,
+    });
+};
 const timeoutTips = () => {
   Dialog({
       title: '可尝试设置为 3000~4000',
       content: '防止拉取结果的总时长超过代理 app 加载外部资源的最大等待时长, 确保拉取成功',
+      popClass: 'auto-dialog',
+      okText: 'OK',
+      noCancelBtn: true,
+      closeOnPopstate: true,
+      lockScroll: false,
+    });
+};
+const cacheThresholdTips = () => {
+  Dialog({
+      title: '可尝试设置为 1024',
+      content: '下载资源过大时\n若要写入缓存\n代理 app 可能会崩溃重启\n可尝试设置此值',
       popClass: 'auto-dialog',
       okText: 'OK',
       noCancelBtn: true,
@@ -471,7 +519,9 @@ watchEffect(() => {
     isInit.value = true;
   }
 });
-    
+const setTag = (current) => {
+  storageType.value = current
+};
 </script>
 
 <style lang="scss" scoped>
@@ -488,13 +538,28 @@ watchEffect(() => {
 
     .radio-wrapper {
       display: flex;
-      justify-content: end;
+      align-items: center;
+      // justify-content: end;
 
-      :deep(.nut-radio__button.false) {
-        background: var(--divider-color);
-        border-color: transparent;
+      .tag {
+        font-size: 12px;
         color: var(--second-text-color);
+        margin: 0px 5px;
+        padding: 7.5px 2.5px;
+        cursor: pointer;
+        -webkit-user-select: none;
+        user-select: none;
       }
+      .current {
+        border-bottom: 1px solid var(--primary-color);
+        color: var(--primary-color);
+      }
+      .storage-info {
+        margin-left: auto;
+        font-size: 12px;
+        color: var(--lowest-text-color);
+      }
+
     }
 
     .config-card {

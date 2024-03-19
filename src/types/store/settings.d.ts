@@ -14,6 +14,7 @@ interface SettingsPostData {
   githubUser?: string;
   defaultUserAgent?: string;
   defaultTimeout?: string;
+  cacheThreshold?: string;
   theme?: {
     auto: boolean;
     name?: CustomTheme;
@@ -26,4 +27,4 @@ interface StoragePostData {
   content: String;
 }
 
-type CustomTheme = 'light' | 'dark';
+type CustomTheme = "light" | "dark";

@@ -35,6 +35,9 @@ interface Sub {
   source: 'remote' | 'local';
   icon?: string;
   ua?: string;
+  mergeSources?: string;
+  subUserinfo?: string;
+  tag?: string[];
   process: Process[];
 }
 
@@ -44,6 +47,7 @@ interface Collection {
   process: Process[];
   subscriptions: string[];
   icon?: string;
+  tag?: string[];
 }
 
 interface Artifacts {
@@ -59,8 +63,10 @@ interface Artifacts {
 
 interface Flow {
   status: 'success' | 'noFlow';
+  hideExpire?: boolean;
   data: {
-    expires: number;
+    remainingDays?: number;
+    expires?: number;
     total: number;
     usage: {
       upload: number;

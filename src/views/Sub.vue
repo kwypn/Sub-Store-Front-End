@@ -49,15 +49,33 @@
             bottom: bottomSafeArea + 48 + 12 + 8,
             right: 16,
           }"
-          :style="{ cursor: 'pointer', right: '16px', bottom: `${bottomSafeArea + 48 + 36}px` }"
+          :style="{
+            cursor: 'pointer',
+            right: '16px',
+            bottom: `${
+              bottomSafeArea +
+              48 +
+              36 +
+              (!isMobile() ? (isSimpleMode ? 44 : 48) : 0)
+            }px`,
+          }"
         >
           <!-- 刷新 -->
-          <div v-if="showFloatingRefreshButton" class="drag-btn refresh" @click="refresh">
+          <div
+            v-if="showFloatingRefreshButton"
+            class="drag-btn refresh"
+            @click="refresh"
+          >
             <font-awesome-icon icon="fa-solid fa-arrow-rotate-right" />
           </div>
 
           <!-- 加号 -->
-          <div class="drag-btn" @click="addSubBtnIsVisible = true">
+          <div
+            class="drag-btn"
+            @touchmove="onTa"
+            @touchend="enTa"
+            @click="setaddSubBtnIsVisible"
+          >
             <font-awesome-icon icon="fa-solid fa-plus" />
           </div>
         </nut-drag>
@@ -67,12 +85,24 @@
     <!-- 页面内容 -->
     <!-- 有数据 -->
     <div class="subs-list-wrapper">
-      <div v-if="hasSubs">
+      <div v-if="tags && tags.length > 0" class="radio-wrapper" >
+        <!-- <nut-radiogroup v-model="tag" direction="horizontal"> -->
+          <!-- <nut-radio v-for="i in tags" shape="button" :label="String(i.value)">{{ i.label }}</nut-radio> -->
+          <span v-for="i in tags" :class="{ 'tag': true, 'current': i.value === tag }" @click="setTag(i.value)">{{ i.label }}</span>
+        <!-- </nut-radiogroup> -->
+      </div>
+      <div v-if="filterdSubsCount > 0">
         <div class="sticky-title-wrappers">
-          <p class="list-title">{{ $t(`specificWord.singleSub`) }}</p>
+          <p class="list-title" @click="toggleFold('sub')">
+            <p>{{ $t(`specificWord.singleSub`) + '('+filterdSubsCount+')' }}</p>
+            <nut-icon v-if="!isFold('sub')" name="rect-down" size="12px"></nut-icon>
+            <nut-icon v-else name="rect-right" size="12px"></nut-icon>
+          </p>
+
         </div>
 
         <draggable
+          v-if="!isFold('sub')"
           v-model="subs"
           item-key="name"
           :scroll-sensitivity="200"
@@ -91,7 +121,7 @@
           @end="handleDragEnd(subs)"
         >
           <template #item="{ element }">
-            <div :key="element.name" class="draggable-item">
+            <div :key="element.name" class="draggable-item" v-show="shouldShowElement(element)">
               <SubListItem
                 :sub="element"
                 type="sub"
@@ -102,12 +132,17 @@
         </draggable>
       </div>
 
-      <div v-if="hasCollections">
+      <div v-if="filterdColsCount > 0">
         <div class="sticky-title-wrappers">
-          <p class="list-title">{{ $t(`specificWord.collectionSub`) }}</p>
+          <p class="list-title" @click="toggleFold('col')">
+            <p>{{ $t(`specificWord.collectionSub`) + '('+filterdColsCount+')'}}</p>
+            <nut-icon v-if="!isFold('col')" name="rect-down" size="12px"></nut-icon>
+            <nut-icon v-else name="rect-right" size="12px"></nut-icon>
+          </p>
         </div>
 
         <draggable
+          v-if="!isFold('col')"
           v-model="collections"
           item-key="name"
           :scroll-sensitivity="200"
@@ -126,7 +161,7 @@
           @end="handleDragEnd(collections)"
         >
           <template #item="{ element }">
-            <div :key="element.name" class="draggable-item">
+            <div :key="element.name" class="draggable-item" v-show="shouldShowElement(element)">
               <SubListItem
                 :collection="element"
                 type="collection"
@@ -187,7 +222,7 @@
 
 <script lang="ts" setup>
 import { storeToRefs } from "pinia";
-import { ref, toRaw } from "vue";
+import { ref, toRaw, computed } from "vue";
 import draggable from "vuedraggable";
 
 import { useAppNotifyStore } from "@/store/appNotify";
@@ -200,20 +235,73 @@ import { useSubsStore } from "@/store/subs";
 import { initStores } from "@/utils/initApp";
 import { useI18n } from "vue-i18n";
 import { useBackend } from "@/hooks/useBackend";
+import { isMobile } from "@/utils/isMobile";
 
 const { env } = useBackend();
 const { showNotify } = useAppNotifyStore();
 const subsApi = useSubsApi();
 const { t } = useI18n();
+
 const addSubBtnIsVisible = ref(false);
+// const isSubFold = ref(localStorage.getItem('sub-fold') === '1');
+// const isColFold = ref(localStorage.getItem('col-fold') === '1');
 const subsStore = useSubsStore();
 const globalStore = useGlobalStore();
 const { hasSubs, hasCollections, subs, collections } = storeToRefs(subsStore);
-const { isLoading, fetchResult, bottomSafeArea, showFloatingRefreshButton } = storeToRefs(globalStore);
+const {
+  isSimpleMode,
+  isLoading,
+  fetchResult,
+  bottomSafeArea,
+  showFloatingRefreshButton,
+} = storeToRefs(globalStore);
 const swipeDisabled = ref(false);
 const touchStartY = ref(null);
 const touchStartX = ref(null);
 const sortFailed = ref(false);
+const hasUntagged = ref(false);
+const tags = computed(() => {
+  if(!hasSubs.value && !hasCollections.value) return []
+  // 从 subs 和 collections 中获取所有的 tag, 去重
+  const set = new Set()
+  subs.value.forEach(sub => {
+    if (Array.isArray(sub.tag) && sub.tag.length > 0) {
+      sub.tag.forEach(i => {
+        set.add(i)
+      });
+    } else {
+      hasUntagged.value = true
+    }
+  })
+  collections.value.forEach(col => {
+    if (Array.isArray(col.tag) && col.tag.length > 0) {
+      col.tag.forEach(i => {
+        set.add(i)
+      });
+    } else {
+      hasUntagged.value = true
+    }
+  })
+
+  let tags: any[] = Array.from(set)
+  if(tags.length === 0) return []
+  tags = tags.map(i => ({ label: i, value: i }));
+  
+  const result = [{ label: t("specificWord.all"), value: "all" }, ...tags]
+  if(hasUntagged.value) result.push({ label: t("specificWord.untagged"), value: "untagged" })
+  return result
+});
+const tag = ref('all');
+const filterdSubsCount = computed(() => {
+  if(tag.value === 'all') return subs.value.length
+  if(tag.value === 'untagged') return subs.value.filter(i => !Array.isArray(i.tag) || i.tag.length === 0).length
+  return subs.value.filter(i => i.tag.includes(tag.value)).length
+});
+const filterdColsCount = computed(() => {
+  if(tag.value === 'all') return collections.value.length
+  if(tag.value === 'untagged') return collections.value.filter(i => !Array.isArray(i.tag) || i.tag.length === 0).length
+  return collections.value.filter(i => i.tag.includes(tag.value)).length
+});
 const onTouchStart = (event: TouchEvent) => {
   touchStartY.value = Math.abs(event.touches[0].clientY);
   touchStartX.value = Math.abs(event.touches[0].clientX);
@@ -238,6 +326,23 @@ const onTouchEnd = () => {
 
 const refresh = () => {
   initStores(true, true, true);
+};
+
+const as = ref(false);
+
+const onTa = () => {
+  as.value = true;
+};
+
+const enTa = () => {
+  setTimeout(() => {
+    as.value = false;
+  }, 100);
+};
+
+const setaddSubBtnIsVisible = () => {
+  if (as.value) return;
+  addSubBtnIsVisible.value = true;
 };
 
 let dragData = null;
@@ -289,9 +394,56 @@ const handleDragEnd = (dataValue: any) => {
   }
   swipeDisabled.value = false;
 };
+function getFoldState() {
+  let states = {}
+  try {
+    let raw = localStorage.getItem('sub-fold')
+    states = raw ? JSON.parse(raw) : {}
+  } catch (e) {}
+  return states;
+}
+const fold = ref(getFoldState());
+const isFold = (type) => {
+  return fold.value?.[type]?.[tag.value];
+}
+const toggleFold = (type) => {
+  if (fold.value?.[type]?.[tag.value]) {
+    delete fold.value[type][tag.value]
+  } else {
+    if (!fold.value[type]) {
+      fold.value[type] = {}
+    }
+    fold.value[type][tag.value] = 1
+  }
+  localStorage.setItem('sub-fold', JSON.stringify(fold.value));
+}
+// const toggleSubFold = () => {
+//   isSubFold.value = !isSubFold.value;
+//   if (isSubFold.value) {
+//     localStorage.setItem('sub-fold', '1')  
+//   } else {
+//     localStorage.removeItem('sub-fold')
+//   }
+// };
+// const toggleColFold = () => {
+//   isColFold.value = !isColFold.value;
+//   if (isColFold.value) {
+//     localStorage.setItem('col-fold', '1')  
+//   } else {
+//     localStorage.removeItem('col-fold')
+//   }
+// };
+const setTag = (current) => {
+  tag.value = current
+};
+const shouldShowElement = (element) => {
+  if(tag.value === 'all') return true
+  if(tag.value === 'untagged') return !Array.isArray(element.tag) || element.tag.length === 0
+  return element.tag.includes(tag.value)
+};
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .drag-btn-wrapper {
   position: relative;
   z-index: 999;
@@ -396,9 +548,23 @@ const handleDragEnd = (dataValue: any) => {
 }
 
 .list-title {
+  -webkit-user-select: none;
+  user-select: none;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  cursor: pointer;
   padding-left: 8px;
   font-weight: bold;
   //padding-left: var(--safe-area-side);
+  p {
+    margin-right: 6px;
+  }
+  :deep(.nut-icon) {
+    // transform: rotate(270deg);
+    font-size: 12px;
+    height: 12px;
+  }
 }
 
 .sticky-title-wrappers {
@@ -446,5 +612,30 @@ const handleDragEnd = (dataValue: any) => {
   width: calc(100% - 1.5rem);
   margin-left: auto;
   margin-right: auto;
+  .radio-wrapper {
+    margin-top: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    // justify-content: end;
+
+    // :deep(.nut-radio__button.false) {
+    //   background: var(--divider-color);
+    //   border-color: transparent;
+    //   color: var(--second-text-color);
+    // }
+    .tag {
+      font-size: 12px;
+      color: var(--second-text-color);
+      margin: 0px 5px;
+      padding: 7.5px 2.5px;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .current {
+      border-bottom: 1px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+  }
 }
 </style>

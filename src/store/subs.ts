@@ -39,10 +39,20 @@ export const useSubsStore = defineStore('subsStore', {
     async fetchSubsData() {
       await Promise.all([subsApi.getSubs(), subsApi.getCollections(), filesApi.getWholeFiles()]).then(res => {
         if ('data' in res[0].data) {
-          this.subs = res[0].data.data;
+          this.subs = res[0].data.data.map(i => {
+            if (!Array.isArray(i.tag)) {
+              i.tag = []
+            }
+            return i
+          });
         }
         if ('data' in res[1].data) {
-          this.collections = res[1].data.data;
+          this.collections = res[1].data.data.map(i => {
+            if (!Array.isArray(i.tag)) {
+              i.tag = []
+            }
+            return i
+          });
         }
         if ('data' in res[2].data) {
           this.files = res[2].data.data;
@@ -64,12 +74,12 @@ export const useSubsStore = defineStore('subsStore', {
       }
     },
     async fetchFlows(sub?: Sub[]) {
-      const asyncGetFlow = async ([url, name, noFlow]) => {
+      const asyncGetFlow = async ([url, name, noFlow, hideExpire]) => {
         if (noFlow) {
           this.flows[url] = { status:'noFlow' };
         } else {
           const { data } = await subsApi.getFlow(name);
-          this.flows[url] = data;
+          this.flows[url] = {...data, hideExpire };
         }
       };
       // const subs = sub || this.subs;

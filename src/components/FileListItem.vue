@@ -39,7 +39,7 @@
           <h3 v-if="!isSimpleMode" class="sub-item-title">
             {{ displayName || name }}
           </h3>
-          <h3 v-else style="color: var(--primary-text-color); font-size: 16px">
+          <h3 v-else class="sub-item-title" style="color: var(--primary-text-color); font-size: 16px">
             {{ displayName || name }}
           </h3>
 
@@ -303,14 +303,14 @@
     if (swipeIsOpen.value) {
       swipe.value.close();
       swipeIsOpen.value = false;
-      moreAction.value.style.transform = 'rotate(0deg)';
+      if(moreAction.value) moreAction.value.style.transform = 'rotate(0deg)';
     } else {
       if (isLeftRight.value) {
         swipe.value.open('right');
       } else {
         swipe.value.open('left');
         swipeIsOpen.value = true;
-        moreAction.value.style.transform = 'rotate(180deg)';
+        if(moreAction.value) moreAction.value.style.transform = 'rotate(180deg)';
       }
     }
   };
@@ -322,6 +322,7 @@
 
 
   const onClickCopyConfig = async () => {
+    swipeController()
     const data = JSON.parse(JSON.stringify(toRaw(props.file)));
     data.name += `-copy${~~(Math.random() * 10000)}`;
 
@@ -338,6 +339,7 @@
   };
 
   const onClickDelete = () => {
+    swipeController()
     Dialog({
       title: t('subPage.deleteSub.title'),
       content: createVNode(
@@ -397,7 +399,7 @@
       flex-shrink: 0;
       width: 56px;
       height: 56px;
-      margin-right: 20px;
+      margin-right: 15px;
       border-radius: 12px;
 
       img {
@@ -439,7 +441,7 @@
           svg {
             width: 16px;
             height: 16px;
-            color: var(--lowest-text-color);
+            color: var(--comment-text-color);
           }
         }
 
