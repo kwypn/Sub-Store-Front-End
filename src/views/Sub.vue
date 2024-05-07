@@ -21,7 +21,27 @@
         closeable
         round
       >
-        <p class="add-sub-panel-title">{{ $t(`subPage.addSubTitle`) }}</p>
+        <div class="title-btn">
+          <p class="add-sub-panel-title">{{ $t(`subPage.addSubTitle`) }}</p>
+          <p class="add-sub-panel-title or">{{ $t(`specificWord.or`) }}</p>
+          <input type="file" ref="fileInput" accept="application/json,text/json,.json" @change="fileChange" style="display: none">
+          <nut-button
+            class="upload-btn"
+            plain
+            type="primary"
+            size="small"
+            :disabled="restoreIsLoading"
+            :loading="restoreIsLoading"
+            @click="upload()"
+          >
+            <font-awesome-icon
+              icon="fa-solid fa-file-import"
+              v-if="!uploadIsLoading"
+            />
+            {{ $t(`subPage.import.label`) }}
+          </nut-button>
+          <nut-icon name="tips" @click="importTips"></nut-icon>
+        </div>
         <ul class="add-sub-panel-list">
           <li>
             <router-link to="/edit/subs/UNTITLED" class="router-link">
@@ -98,7 +118,6 @@
             <nut-icon v-if="!isFold('sub')" name="rect-down" size="12px"></nut-icon>
             <nut-icon v-else name="rect-right" size="12px"></nut-icon>
           </p>
-
         </div>
 
         <draggable
@@ -226,7 +245,7 @@ import { ref, toRaw, computed } from "vue";
 import draggable from "vuedraggable";
 
 import { useAppNotifyStore } from "@/store/appNotify";
-// import { Dialog, Toast } from '@nutui/nutui';
+import { Dialog, Toast } from '@nutui/nutui';
 
 import { useSubsApi } from "@/api/subs";
 import SubListItem from "@/components/SubListItem.vue";
@@ -241,7 +260,9 @@ const { env } = useBackend();
 const { showNotify } = useAppNotifyStore();
 const subsApi = useSubsApi();
 const { t } = useI18n();
-
+const fileInput = ref(null);
+const uploadIsLoading = ref(false);
+const restoreIsLoading = ref(false);
 const addSubBtnIsVisible = ref(false);
 // const isSubFold = ref(localStorage.getItem('sub-fold') === '1');
 // const isColFold = ref(localStorage.getItem('col-fold') === '1');
@@ -260,6 +281,10 @@ const touchStartY = ref(null);
 const touchStartX = ref(null);
 const sortFailed = ref(false);
 const hasUntagged = ref(false);
+const getTag = () => {
+    return localStorage.getItem('sub-tag') || 'all'
+  }
+const tag = ref(getTag());
 const tags = computed(() => {
   if(!hasSubs.value && !hasCollections.value) return []
   // 从 subs 和 collections 中获取所有的 tag, 去重
@@ -289,9 +314,13 @@ const tags = computed(() => {
   
   const result = [{ label: t("specificWord.all"), value: "all" }, ...tags]
   if(hasUntagged.value) result.push({ label: t("specificWord.untagged"), value: "untagged" })
+
+  if (!result.find(i => i.value === tag.value)) {
+    tag.value = 'all'
+  }
   return result
 });
-const tag = ref('all');
+
 const filterdSubsCount = computed(() => {
   if(tag.value === 'all') return subs.value.length
   if(tag.value === 'untagged') return subs.value.filter(i => !Array.isArray(i.tag) || i.tag.length === 0).length
@@ -435,11 +464,79 @@ const toggleFold = (type) => {
 // };
 const setTag = (current) => {
   tag.value = current
+  if (current === 'all') {
+    localStorage.removeItem('sub-tag')
+  } else {
+    localStorage.setItem('sub-tag', current)
+  }
 };
 const shouldShowElement = (element) => {
   if(tag.value === 'all') return true
   if(tag.value === 'untagged') return !Array.isArray(element.tag) || element.tag.length === 0
   return element.tag.includes(tag.value)
+};
+const upload = async() => {
+  try {
+    fileInput.value.click()
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+const fileChange = async (event) => {
+  const file = event.target.files[0];
+  if(!file) return
+  try {
+    restoreIsLoading.value = true;
+    const reader = new FileReader();
+    reader.readAsText(file);
+    reader.onload = async () => {
+      const item = JSON.parse(String(reader.result))
+      const suffix = new Date().getTime()
+      item.name += `_${suffix}`
+      item.displayName += `_${suffix}`
+      item['display-name'] = item.displayName
+      const res = await subsApi.createSub('subs', item);
+      // await subsStore.fetchSubsData();
+      
+      // const res = await useSettingsApi().restoreSettings({ content: String(reader.result) });
+      if (res?.data?.status === "success") {
+        await initStores(false, true, true);
+        showNotify({
+          type: "success",
+          title: t(`subPage.import.succeed`),
+        });
+        addSubBtnIsVisible.value = false
+      } else {
+        throw new Error('restore failed')
+      }
+    }
+
+    reader.onerror = e => {
+      throw e
+    }
+    
+  } catch (e) {
+    showNotify({
+      type: "danger",
+      title: t(`subPage.import.failed`, { e: e.message ?? e }),
+    });
+    console.error(e);
+  } finally {
+    restoreIsLoading.value = false;
+  }
+};
+const importTips = () => {
+  addSubBtnIsVisible.value = false
+  Dialog({
+      title: '仅支持 Sub-Store 单条订阅数据',
+      content: '订阅管理页面, 在某个单条订阅左滑/右滑的更多项中, 点击导出图标按钮',
+      popClass: 'auto-dialog',
+      okText: 'OK',
+      noCancelBtn: true,
+      closeOnPopstate: true,
+      lockScroll: false,
+    });
 };
 </script>
 
@@ -478,12 +575,28 @@ const shouldShowElement = (element) => {
 .add-sub-popup {
   background-color: var(--popup-color);
   // position: relative;
-
+  .title-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+    .nut-icon {
+      color: var(--comment-text-color);
+    }
+    :deep(.nut-icon-tips:before) {
+      cursor: pointer;
+      margin-left: 4px;
+    }
+  }
   .add-sub-panel-title {
-    width: 100%;
+    width: auto;
     text-align: center;
     font-size: 16px;
-    color: var(--comment-text-color);
+    color: var(--second-text-color);
+    &.or {
+      margin: 0 4px;
+      color: var(--comment-text-color);
+    }
   }
 
   .add-sub-panel-list {
@@ -564,6 +677,8 @@ const shouldShowElement = (element) => {
     // transform: rotate(270deg);
     font-size: 12px;
     height: 12px;
+    opacity: .6;
+    margin-top: 3px;
   }
 }
 
@@ -616,7 +731,7 @@ const shouldShowElement = (element) => {
     margin-top: 5px;
     display: flex;
     flex-wrap: wrap;
-    // justify-content: end;
+    
 
     // :deep(.nut-radio__button.false) {
     //   background: var(--divider-color);
@@ -627,10 +742,11 @@ const shouldShowElement = (element) => {
       font-size: 12px;
       color: var(--second-text-color);
       margin: 0px 5px;
-      padding: 7.5px 2.5px;
+      padding: 7.5px 2.5px 4px;
       cursor: pointer;
       -webkit-user-select: none;
       user-select: none;
+      border-bottom: 1px solid transparent;
     }
     .current {
       border-bottom: 1px solid var(--primary-color);

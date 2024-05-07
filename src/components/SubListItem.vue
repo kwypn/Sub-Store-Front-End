@@ -98,7 +98,7 @@
                 {{ flow }}
               </span>
             </template>
-            <template v-else>
+            <template v-else-if="typeof flow === 'object'">
               <span>
                 {{ flow.firstLine }}
               </span>
@@ -117,7 +117,7 @@
                 {{ flow }}
               </span>
             </template>
-            <template v-else>
+            <template v-else-if="typeof flow === 'object'">
               <span v-if="flow.secondLine" style="font-weight: normal">
                 {{ flow.firstLine + ' | ' + flow.secondLine }}
               </span>
@@ -175,11 +175,11 @@
           <font-awesome-icon icon="fa-solid fa-paste" />
         </nut-button>
       </div>
-      <!-- <div class="sub-item-swipe-btn-wrapper">
-        <nut-button shape="square" type="success" class="sub-item-swipe-btn" @click="onClickPreview">
-          <font-awesome-icon icon="fa-solid fa-eye" />
-        </nut-button>
-      </div> -->
+      <div v-if="type === 'sub'" class="sub-item-swipe-btn-wrapper">
+        <a :href=" `${host}/api/${props.type}/${encodeURIComponent(name)}?raw=1` " target="_blank"><nut-button shape="square" type="success" class="sub-item-swipe-btn">
+          <font-awesome-icon icon="fa-solid fa-file-export" />
+        </nut-button></a>
+      </div>
       <div class="sub-item-swipe-btn-wrapper">
         <nut-button
           shape="square"
@@ -288,14 +288,20 @@ const flow = computed(() => {
   if (props.type === "sub") {
     const urlList = Object.keys(flows.value);
     const localOnly = props.sub.source === 'local' && !['localFirst', 'remoteFirst'].includes(props.sub.mergeSources)
-    if (localOnly) return t("subPage.subItem.local");
+    if (localOnly && !props.sub.subUserinfo) return t("subPage.subItem.local");
     if (isFlowFetching.value && !urlList.includes(props.sub.url))
       return t("subPage.subItem.loading");
 
-    const target = toRaw(flows.value[props.sub.url]);
+    const target = toRaw(flows.value[props.sub.url] || flows.value[props.sub.name]);
     if (!target) {
       return {
         firstLine: t("subPage.subItem.noRecord"),
+        secondLine: ``,
+      };
+    }
+    if (!target?.status) {
+      return {
+        firstLine: t("subPage.subItem.flowError"),
         secondLine: ``,
       };
     }
@@ -333,7 +339,7 @@ const flow = computed(() => {
           secondLine = secondLine ? `${secondLine} | ${expiresInfo}` : expiresInfo;
         }
         return {
-          firstLine: `${getString(upload + download, total, "B")}`,
+          firstLine: `${getString(target.showRemaining ? (total - upload - download) : (upload + download), total, "B")}`,
           secondLine,
           progress
         };
@@ -353,8 +359,8 @@ const flow = computed(() => {
           secondLine = secondLine ? `${secondLine} | ${expiresInfo}` : expiresInfo;
         }
         return {
-          firstLine: `${t("subPage.subItem.flow")}: ${getString(
-            upload + download,
+          firstLine: `${t(target.showRemaining ? "subPage.subItem.showRemainingFlow" : "subPage.subItem.flow")}: ${getString(
+            target.showRemaining ? (total - upload - download) : (upload + download),
             total,
             "B"
           )}`,
@@ -517,6 +523,26 @@ const onClickCopyConfig = async () => {
   showNotify({ title: t("subPage.copyConfigNotify.succeed") });
   swipe.value.close();
 };
+// const onClickExport = async () => {
+//   swipeController()
+//   let data: Sub | Collection;
+//   switch (props.type) {
+//     case "sub":
+//       data = JSON.parse(JSON.stringify(toRaw(props.sub)));
+//       break;
+//     case "collection":
+//       data = JSON.parse(JSON.stringify(toRaw(props.collection)));
+//       break;
+//   }
+//   data.name += `-exportedAt${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+
+//   Toast.loading(t("subPage.copyConfigNotify.loading"), { id: "exportConfig" });
+//   // await subsApi.createSub(props.type + "s", data);
+//   // await subsStore.fetchSubsData();
+//   Toast.hide("exportConfig");
+//   showNotify({ title: t("subPage.copyConfigNotify.succeed") });
+//   swipe.value.close();
+// };
 
 const onClickEdit = () => {
   router.push(`/edit/${props.type}s/${encodeURIComponent(name)}`);

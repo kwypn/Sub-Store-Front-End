@@ -1,25 +1,36 @@
 <template>
   <div class="cmviewRef">
-    <div class="cm-img-button">
-      <!--mouseenter mouseover @mouseleave="openPanel = false"   -->
+    <div
+      class="cm-img-button"
+      :class="{ 'nodark-imgbutton': !isDarkModeEnabled }"
+    >
       <div v-if="openPanel">
         <button @click="hiCode"><img :src="jsimg" /></button>
         <button @click="undoCode"><img :src="undoimg" /></button>
         <button @click="redoCode"><img :src="redoimg" /></button>
-        <button @click="formatCode"><img :src="format" /></button>
+        <button v-if="isJS" @click="formatCode"><img :src="format" /></button>
         <button @click="searchs"><img :src="searchimg" /></button>
         <button @click="copyText"><img :src="copyimg" /></button>
         <button @click="delAllCode"><img :src="del" /></button>
         <button @click="pasteNav"><img :src="paste" /></button>
       </div>
-      <span v-else style="opacity: 0.4; font-size: 12px; padding-left: 10px">
+      <span
+        v-else
+        style="
+          opacity: 0.9;
+          font-size: 12px;
+          padding-left: 10px;
+          line-height: 14px;
+          height: 22px;
+          color: var(--second-text-color);
+        "
+      >
         {{ Length }} &nbsp;
       </span>
-
       <button @click="setPanel"><img :src="more" /></button>
     </div>
 
-    <div ref="viewRef" style="width: 100%; font-size: 11px" />
+    <div ref="viewRef" style="width: 100%; font-size: 12px" />
     <div style="height: 10px" />
   </div>
 </template>
@@ -54,7 +65,7 @@ import {
 } from "@codemirror/commands";
 import { closeBrackets, autocompletion } from "@codemirror/autocomplete";
 import { Compartment, EditorState } from "@codemirror/state";
-import { hyperLink } from "@uiw/codemirror-extensions-hyper-link";
+import { hyperLink } from "@/views/editCode/link";
 import { indentationMarkers } from "@replit/codemirror-indentation-markers";
 import useV3Clipboard from "vue-clipboard3";
 import copyimg from "@/views/editCode/svg/copy.svg";
@@ -81,9 +92,9 @@ const isDarkModeEnabled = ref(true);
 
 const Length = ref("");
 const props = defineProps(["isReadOnly", "id"]);
-console.log(props.id);
+console.log("cm-id: ", props.id);
 const cmStore = useCodeStore();
-
+const isJS = ref(false);
 const viewRef = ref(null);
 const editorTheme = new Compartment();
 const langs = new Compartment();
@@ -172,9 +183,10 @@ function formatLength(length) {
 }
 const getjsjson = (res) => {
   Length.value = formatLength(res?.length);
+  // if (props.isJS) return false;
   try {
     const jsRegex =
-      /(?:function|var|let|const|if|else|return|try|catch|finally|typeof|delete|async|await)\b/;
+      /(?:function|var|let|const|if|else|return|try|catch|finally|typeof|delete|async|await)\s/;
     if (jsRegex.test(res.slice(0, 4000))) {
       setHJ();
       console.log("---setHJ");
@@ -215,7 +227,7 @@ if (theme.value.auto === true) {
 }
 watchEffect(() => {
   if (theme.value.auto === false) {
-    if (["mocha", "light"].includes(theme.value.name)) {
+    if (/^mocha$|light/.test(theme.value.name)) {
       isDarkModeEnabled.value = false;
     } else {
       isDarkModeEnabled.value = true;
@@ -272,11 +284,13 @@ const searchs = () => {
 };
 
 const setHJ = () => {
+  isJS.value = true;
   view.dispatch({
     effects: langs.reconfigure(javascript()),
   });
 };
 const noHJ = () => {
+  isJS.value = false;
   view.dispatch({
     effects: langs.reconfigure([]),
   });
@@ -315,6 +329,7 @@ const copyText = async () => {
 
 const delAllCode = () => {
   cmStore.setEditCode([props.id], "");
+  cmStore.CodeClear([props.id], true);
   showNotify({
     type: "success",
     title: "已清空",
@@ -358,14 +373,20 @@ const pasteNav = async () => {
 
 .cm-img-button {
   display: flex;
-  padding-top: 10px;
+  padding-top: 9px;
   z-index: 10;
-  min-height: 24px;
-  width: 98%;
+  height: 33px;
+  width: 100%;
   justify-content: flex-end;
+  // position: absolute;
+  // top: 42px;
+  // background-color: var(--card-color);
   img {
     width: 16px;
     height: 16px;
+  }
+  button {
+    cursor: pointer;
   }
 }
 
@@ -379,7 +400,21 @@ const pasteNav = async () => {
   width: 33px;
   transition: transform 0.2s;
 }
-
+.cimg-button {
+  // width: 33px;
+  height: 16px;
+  font-size: 12px;
+  background-repeat: no-repeat;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  margin-left: 10px;
+  margin-top: 8px;
+  color: var(--comment-text-color);
+  // position: absolute;
+  cursor: pointer;
+}
 .cm-img-button button:hover {
   transform: scale(0.9);
 }
@@ -403,8 +438,10 @@ const pasteNav = async () => {
   border: 1px solid #8b8b8b3b !important;
   border-radius: 10px;
   background-color: transparent !important;
-  min-width: 160px;
+  width: 40%;
   padding: 0.2em 0.5em;
+  border-color: none !important;
+  outline: none;
 }
 
 .cm-panel.cm-search input[type="checkbox"] {
@@ -434,5 +471,25 @@ input[type="checkbox"]:checked {
 
 .cm-panel.cm-search label {
   font-size: 90% !important;
+}
+
+.nodark-imgbutton {
+  filter: invert(1);
+}
+.ͼ1.cm-focused {
+  outline: none;
+}
+
+.ͼ1u .cm-panels.cm-panels-bottom {
+  border-top: none;
+}
+
+.cm-panels.cm-panels-bottom {
+  background: var(--card-color) !important;
+  box-shadow: 0 0 6px #919db687;
+}
+
+.cm-button:active {
+  background-color: #b6d9eba6 !important;
 }
 </style>

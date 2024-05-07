@@ -9,6 +9,7 @@ export default {
     unknown: '未知',
     all: '全部',
     untagged: '未分组',
+    or: '或',
   },
   globalNotify: {
     refresh: {
@@ -99,6 +100,11 @@ export default {
   },
   // 订阅管理页
   subPage: {
+    import: {
+      label: '导入',
+      succeed: '导入成功',
+      failed: '导入失败\n{e}',
+    },
     addSubTitle: '选择要创建的订阅类型',
     previewTitle: '预览/拷贝订阅',
 
@@ -123,12 +129,14 @@ export default {
       local: '本地订阅',
       loading: '加载中...',
       flow: '已用/总流量',
+      showRemainingFlow: '剩余/总流量',
       expires: '到期',
       remainingDays: '重置',
       remainingDaysUnit: ' 天',
       noRecord: '刷新后可获取流量情况',
       noFlow: '不查询流量',
       noFlowInfo: '无流量信息',
+      flowError: '无法获取流量信息',
       noExpiresInfo: '无有效期信息',
     },
     deleteSub: {
@@ -148,6 +156,11 @@ export default {
       loading: '克隆配置中...',
       succeed: '配置克隆成功！',
       failed: '配置克隆失败！\n{e}',
+    },
+    exportConfigNotify: {
+      loading: '导出配置中...',
+      succeed: '导出成功！',
+      failed: '导出失败！\n{e}',
     },
     panel: {
       general: '通用订阅',
@@ -226,7 +239,7 @@ export default {
         },
         url: {
           label: '链接',
-          placeholder: '订阅链接(多个订阅请换行) 支持参数: validCheck 过期或无剩余流量时报错, flowUserAgent 查询流量时使用的 User-Agent, noFlow 不查询流量, hideExpire 隐藏到期, noCache 不使用缓存, resetDay 每月流量重置日, startDate 订阅开始日期, cycleDays 订阅重置周期(单位: 天). 例: http://a.com?token=1#cycleDays=31&startDate=2024-06-04 或 http://a.com?token=1#resetDay=15',
+          placeholder: '订阅链接(多个订阅请换行) 支持参数: cacheKey 请求失败时从此处读取最近一次成功的缓存, validCheck 过期或无剩余流量时报错, flowUserAgent 查询流量时使用的 User-Agent, noFlow 不查询流量, hideExpire 隐藏到期, showRemaining 显示剩余流量而不是已用流量, noCache 不使用缓存, resetDay 每月流量重置日, startDate 订阅开始日期, cycleDays 订阅重置周期(单位: 天). 例: http://a.com?token=1#cycleDays=31&startDate=2024-06-04 或 http://a.com?token=1#resetDay=15',
           isEmpty: '订阅链接不能为空',
           isIllegal: '订阅链接格式非法',
         },
@@ -347,7 +360,7 @@ export default {
         },
         'Region Filter': {
           label: '区域过滤',
-          options: ['🇭🇰 HK', '🇨🇳 TW', '🇸🇬 SG', '🇯🇵 JP', '🇬🇧 UK', '🇺🇸 US'],
+          options: ['🇭🇰 HK', '🇨🇳 TW', '🇸🇬 SG', '🇯🇵 JP', '🇬🇧 UK', '🇺🇸 US', '🇩🇪 DE', '🇰🇷 KR'],
           tipsTitle: '区域过滤操作提示',
           tipsDes: '按照国家和区域过滤节点',
         },

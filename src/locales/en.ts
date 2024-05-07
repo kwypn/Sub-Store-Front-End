@@ -9,6 +9,7 @@ export default {
     unknown: 'Unknown',
     all: 'All',
     untagged: 'Untagged',
+    or: 'or',
   },
   globalNotify: {
     refresh: {
@@ -99,6 +100,11 @@ export default {
   },
   // subscription management page
   subPage: {
+    import: {
+      label: 'Import',
+      succeed: 'Successfully imported!',
+      failed: 'Failed to import!\n{e}',
+    },
     addSubTitle: 'Which type you want to create?',
     previewTitle: 'Copy/Preview a subscription',
 
@@ -124,12 +130,14 @@ export default {
       local: 'Local subscription',
       loading: 'Loading...',
       flow: 'Usage / Total',
+      showRemainingFlow: 'Remaining / Total',
       expires: 'Expires',
       remainingDays: 'Remaining Reset Days',
       remainingDaysUnit: '',
       noRecord: 'Refresh to get usage',
       noFlow: 'No flow',
       noFlowInfo: 'No flow info',
+      flowError: 'Failed to get usage',
       noExpiresInfo: 'No expires info',
     },
     deleteSub: {
@@ -149,6 +157,11 @@ export default {
       loading: 'Cloning...',
       succeed: 'Successfully cloned config!',
       failed: 'Failed to clone config!\n{e}',
+    },
+    exportConfigNotify: {
+      loading: 'Exporting...',
+      succeed: 'Successfully exported config!',
+      failed: 'Failed to exporte config!\n{e}',
     },
     panel: {
       general: 'General',
@@ -226,7 +239,7 @@ export default {
         },
         url: {
           label: 'URL',
-          placeholder: 'Subscription URL (please separate multiple subscriptions with a new line). Supported parameters: validCheck - error will be reported when expired or there is no remaining traffic, flowUserAgent - the User-Agent for fetching subscription usage info, noFlow - do not query for flow, hideExpire - hide expiration time, noCache - do not use cache, resetDay - the day when monthly data usage resets, startDate - subscription start date, cycleDays - reset cycle (in days). For example: http://a.com?token=1#cycleDays=31&startDate=2024-06-04 or http://a.com?token=1#resetDay=15',
+          placeholder: 'Subscription URL (please separate multiple subscriptions with a new line). Supported parameters: cacheKey - Read the last successful cache from here when the request fails,validCheck - error will be reported when expired or there is no remaining traffic, flowUserAgent - the User-Agent for fetching subscription usage info, showRemaining - show remaining traffic instead of usage, noFlow - do not query for flow, hideExpire - hide expiration time, noCache - do not use cache, resetDay - the day when monthly data usage resets, startDate - subscription start date, cycleDays - reset cycle (in days). For example: http://a.com?token=1#cycleDays=31&startDate=2024-06-04 or http://a.com?token=1#resetDay=15',
           isEmpty: 'URL cannot be empty',
           isIllegal: 'Invalid URL',
         },
@@ -339,7 +352,7 @@ export default {
         },
         'Region Filter': {
           label: 'Region Filter',
-          options: ['🇭🇰 HK', '🇨🇳 TW', '🇸🇬 SG', '🇯🇵 JP', '🇬🇧 UK', '🇺🇸 US'],
+          options: ['🇭🇰 HK', '🇨🇳 TW', '🇸🇬 SG', '🇯🇵 JP', '🇬🇧 UK', '🇺🇸 US', '🇩🇪 DE', '🇰🇷 KR'],
           tipsTitle: 'Region Filter Tips',
           tipsDes: '区域过滤器操作说明',
         },

@@ -10,18 +10,18 @@
             {{ displayName }}
           </span>
         </h1>
-        <button class="copy" @click.stop="copyContent">
+        <!-- <button class="copy" @click.stop="copyContent">
           <svg-icon
             name="copy"
             class="action-icon"
             color="var(--comment-text-color)"
           />
-        </button>
+        </button> -->
         <button @click="clickClose">
           <font-awesome-icon icon="fa-solid fa-circle-xmark" />
         </button>
       </header>
-      <cmView :isReadOnly="false" id="filePreview"/>
+      <cmView :isReadOnly="false" id="filePreview" />
       <!-- <div class="compare-page-body">
         <div class="block-wrapper">
           <div class="input-wrapper">

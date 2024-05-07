@@ -1,12 +1,13 @@
 {
   "name": "sub-store-front-end",
-  "version": "2.14.187",
+  "version": "2.14.231",
   "private": true,
   "scripts": {
     "dev": "vite --host",
     "dev:production": "vite --host --mode production",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview --host"
+    "preview": "vite preview --host",
+    "changelog": "conventional-changelog -p cli -i CHANGELOG.md -s"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.12.0",
@@ -24,7 +25,6 @@
     "@lezer/javascript": "^1.4.13",
     "@nutui/nutui": "^3.3.8",
     "@replit/codemirror-indentation-markers": "^6.5.0",
-    "@uiw/codemirror-extensions-hyper-link": "^4.21.21",
     "@vueuse/core": "^8.9.2",
     "@vueuse/integrations": "^8.9.2",
     "axios": "^0.27.2",

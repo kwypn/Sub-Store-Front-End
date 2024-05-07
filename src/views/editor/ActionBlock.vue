@@ -2,6 +2,18 @@
   <div class="form-block-wrapper">
     <div v-if="sourceType !== 'file'" class="sticky-title-wrapper actions-title-wrapper">
       <p>{{ $t(`editorPage.subConfig.actions.label`) }}</p>
+      <font-awesome-icon
+        v-if="isCollapsed"
+        @click.stop="setCollapsed(false)"
+        class="toggle fa-toggle"
+        icon="fa-solid fa-toggle-on "
+      />
+      <font-awesome-icon
+        v-else
+        @click.stop="setCollapsed(true)"
+        class="toggle fa-toggle"
+        icon="fa-solid fa-toggle-off"
+      />
       <button @click="popActionsHelp">
         <font-awesome-icon icon="fa-solid fa-circle-question" />
         {{ $t(`editorPage.subConfig.basic.nodeActionsHelp`) }}
@@ -19,11 +31,15 @@
   delay: 150,
   handle: '.drag-handler',
 }" @end="drag = false" @start="drag = true" item-key="id">
-      <template #item="{ element }">
+      <template #item="{ element, index }">
         <nut-cell class="list-group-item" aria-hidden="true">
-          <div class="list-group-item-title">
+          <div :class="{ 'list-group-item-title': true, 'collapsed': collapsedElements.includes(element.id) }">
             <div class="title-text left">
-              <span>{{
+              <span class="collapsed" @click="toggleElementCollapsed(element.id)">
+                <nut-icon v-if="!collapsedElements.includes(element.id)" name="rect-down" size="12px"></nut-icon>
+                <nut-icon v-if="collapsedElements.includes(element.id)" name="rect-right" size="12px"></nut-icon>
+              </span>
+              <span class="name" @click="toggleElementCollapsed(element.id)">{{
                 $t(`editorPage.subConfig.nodeActions['${element.type}'].label`)
               }}</span>
               <font-awesome-icon icon="fa-solid fa-circle-question" @click="pop(element.type, element.tipsDes)" />
@@ -47,7 +63,7 @@
               </div>
             </div>
           </div>
-          <Component :is="element.component" :type="element.type" :id="element.id" :sourceType="sourceType"/>
+          <Component v-show="!collapsedElements.includes(element.id)" :is="element.component" :type="element.type" :id="element.id" :sourceType="sourceType"/>
         </nut-cell>
       </template>
     </Draggable>
@@ -125,6 +141,8 @@ const { t } = useI18n();
 const pasteboard = ref("");
 const showPasteboard = ref(false);
 const drag = ref(true);
+const isCollapsed = ref(localStorage.getItem('actions-block-collapsed') === '1');
+const collapsedElements = ref([]);
 const form = inject<Sub | Collection>('form');
 // 列表渲染的数据
 // 预览开关数组，数组第一项为 id，对应 list 中的同 id 项目，控制该 id 开启关闭预览
@@ -151,7 +169,35 @@ if (sourceType === 'file') {
 const columns = ref(items);
 // useMousePicker();
 
-
+if(isCollapsed.value) {
+  collapsedElements.value = list.map((item) => item.id);
+} else {
+  collapsedElements.value = [];
+}
+const setCollapsed = (v) => {
+  isCollapsed.value = v;
+  if (v) {
+    localStorage.setItem('actions-block-collapsed', '1')
+    collapsedElements.value = list.map((item) => item.id);
+  } else {
+    localStorage.removeItem('actions-block-collapsed')
+    collapsedElements.value = [];
+  }
+};
+const toggleElementCollapsed = (id) => {
+  if (collapsedElements.value.includes(id)) {
+    collapsedElements.value = collapsedElements.value.filter(item => item !== id);
+  } else {
+    collapsedElements.value.push(id);
+  }
+  if(collapsedElements.value.length === list.length) {
+    setCollapsed(true)
+  } else if(collapsedElements.value.length === 0){
+    setCollapsed(false)
+  } else {
+    isCollapsed.value = false;
+  }
+};
 const onButtonClick = (item) => {
   emit('addAction', [item]);
 };
@@ -342,9 +388,21 @@ const pop = (type: string, tipsDes: string) => {
     color: var(--comment-text-color);
     border-bottom: 1px solid var(--divider-color);
 
+    &.collapsed {
+      padding-bottom: 0;
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+
     .left {
       font-size: 12px;
       font-weight: bold;
+      display: flex;
+      align-items: center;
+
+      .collapsed, .name {
+        cursor: pointer;
+      }
 
       span {
         margin-right: 6px;
@@ -435,6 +493,13 @@ const pop = (type: string, tipsDes: string) => {
 .actions-title-wrapper {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+
+  .toggle {
+    cursor: pointer;
+    margin-left: 18px;
+    margin-right: auto;
+  }
 
   button {
     background: none;

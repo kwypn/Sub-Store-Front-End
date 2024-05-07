@@ -1,4 +1,5 @@
 <template>
+  <div v-if="isDis">
   <div class="page-wrapper">
     <!-- 基础表单 -->
     <div class="form-block-wrapper">
@@ -128,8 +129,12 @@
               "
               type="text"
             /> -->
-
-            <div style="margin-left: -10px; margin-right: -20px">
+            <button class="cimg-button" @click="isDis = false">
+              <img src="" />
+              全屏编辑
+              <!-- 测试 后续再改效果 -->
+            </button>
+            <div style="margin-left: -15px; margin-right: -15px;max-height: 60vh;overflow: auto;">
               <cmView :isReadOnly="false" id="SubEditer"/>
             </div>
           </nut-form-item>
@@ -214,14 +219,17 @@
             prop="subscriptions"
             class="include-subs-wrapper"
           >
-            <div v-if="tags && tags.length > 0" class="radio-wrapper">
-              <span
-                v-for="i in tags"
-                :class="{ tag: true, current: i.value === tag }"
-                @click="setTag(i.value)"
-              >
-                {{ i.label }}
-              </span>
+            <div v-if="tags && tags.length > 0" class="tag-check">
+              <div class="radio-wrapper">
+                <span
+                  v-for="i in tags"
+                  :class="{ tag: true, current: i.value === tag }"
+                  @click="setTag(i.value)"
+                >
+                  {{ i.label }}
+                </span>
+              </div>
+              <nut-checkbox v-model="subCheckbox" :indeterminate="subCheckboxIndeterminate" @click="subCheckboxClick"></nut-checkbox>
             </div>
             <nut-checkboxgroup
               v-model="form.subscriptions"
@@ -237,14 +245,14 @@
               >
                 <div class="sub-img-wrapper">
                   <nut-avatar
-                    :class="{ 'sub-item-customer-icon': !isIconColor }"
+                    :class="{ 'sub-item-customer-icon': !isIconColor, 'icon': true  }"
                     v-if="item[2]"
                     size="32"
                     :url="item[2]"
                     bg-color=""
                   ></nut-avatar>
                   <span class="sub-item">
-                    &nbsp;{{ item[1] }}
+                    <span class="name">{{ item[1] }}</span>
                     <span class="tag" v-for="i in item[3]" :key="i">
                       <nut-tag>{{ i }}</nut-tag>
                     </span>
@@ -294,7 +302,14 @@
       {{ $t("editorPage.subConfig.btn.save") }}
     </nut-button>
   </div>
-
+</div>
+<div v-else style="width: 100%;max-height: 95vh;">
+    <button class="cimg-button" @click="isDis = true">
+      <img src="" />
+      取消全屏
+    </button>
+    <cmView :isReadOnly="false" id="SubEditer" />
+  </div>
   <CompareTable
     v-if="compareTableIsVisible"
     :name="configName"
@@ -340,7 +355,7 @@ import { useRoute, useRouter } from "vue-router";
 import cmView from "@/views/editCode/cmView.vue";
 import { useCodeStore } from "@/store/codeStore";
 const cmStore = useCodeStore();
-
+const isDis = ref(true)
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
@@ -393,7 +408,10 @@ const padding = bottomSafeArea.value + "px";
   const tag = ref('all');
   const selectedSubs = computed(() => {
     if(!Array.isArray(form.subscriptions) || form.subscriptions.length === 0) return ''
-    return `: ${form.subscriptions.join(', ')}`
+    return `: ${form.subscriptions.map((name) => {
+      const sub = subsStore.getOneSub(name);
+      return sub?.displayName || sub?.["display-name"] || sub.name;
+    }).join(', ')}`
   });
   const compareTableIsVisible = ref(false);
   usePopupRoute(compareTableIsVisible);
@@ -771,6 +789,69 @@ const urlValidator = (val: string): Promise<boolean> => {
     if(tag.value === 'untagged') return !Array.isArray(element) || element.length === 0
     return element.includes(tag.value)
   };
+  const subCheckboxIndeterminate = ref(true);
+  const subCheckbox = ref(true);
+  // const subCheckboxChange = (v) => {
+  //   console.log(`${!v} -> ${v}`)
+  // };
+  const subCheckboxClick = () => {
+    // const selected = toRaw(form.subscriptions) || []
+    const group = subsSelectList.value.filter(item => shouldShowElement(item[3])).map(item => item[0]) || []
+    if (subCheckboxIndeterminate.value) {
+      console.log(`半选, 应变为全选`)  
+      for (let i = 0; i < group.length; i++) {
+        const index = form.subscriptions.indexOf(group[i])
+        if (index === -1) {
+          form.subscriptions.push(group[i])
+        }
+      }
+    } else if (!subCheckbox.value) {
+      console.log(`全选, 应变为不选`)
+      // 用遍历与 form.subscriptions.slice 的方式, 去掉 form.subscriptions 中所有被 group 包含的元素
+      for (let i = 0; i < group.length; i++) {
+        const index = form.subscriptions.indexOf(group[i])
+        if (index > -1) {
+          form.subscriptions.splice(index, 1)
+        }
+      }
+      // subCheckbox.value = !subCheckbox.value
+    } else {
+      console.log(`不选, 应变为全选`)
+      for (let i = 0; i < group.length; i++) {
+        const index = form.subscriptions.indexOf(group[i])
+        if (index === -1) {
+          form.subscriptions.push(group[i])
+        }
+      }
+      // subCheckbox.value = !subCheckbox.value
+    }
+    subCheckboxIndeterminate.value = false
+  };
+  watch([tag, form.subscriptions, subsSelectList], () => {
+    const selected = toRaw(form.subscriptions) || []
+    const group = subsSelectList.value.filter(item => shouldShowElement(item[3])).map(item => item[0]) || []
+    // 1. group 中不包含 selected 中的任何元素, subCheckbox 为 false, subCheckboxIndeterminate 为 false
+    // 2. group 中包含 selected 中的任何元素, subCheckbox 为 true, subCheckboxIndeterminate 为 true
+    // 3. group 中包含 selected 中的所有元素, subCheckbox 为 true, subCheckboxIndeterminate 为 false
+    if (group.every(item => selected.includes(item))) {
+      // console.log('group 中包含 selected 中的所有元素')
+      subCheckbox.value = true
+      subCheckboxIndeterminate.value = false
+    } else if (group.some(item => selected.includes(item))) {
+      // console.log('group 中包含 selected 中的任意元素')
+      subCheckbox.value = true
+      subCheckboxIndeterminate.value = true
+    } else {
+      // console.log('group 中不包含 selected 中的任意元素')
+      subCheckbox.value = false
+      subCheckboxIndeterminate.value = false
+    }
+  }, { immediate: true });
+  // const subCheckboxIndeterminate = computed(() => {
+  //   const selected = toRaw(form.subscriptions)
+  //   const currentGroup = subsSelectList.value.filter(item => shouldShowElement(item[3])).map(item => item[0])
+  //   return true
+  // });
 </script>
 
 <style lang="scss" scoped>
@@ -785,7 +866,14 @@ const urlValidator = (val: string): Promise<boolean> => {
     cursor: pointer;
   }
 }
-
+.tag-check {
+  display: flex;
+  justify-content: space-between;
+  :deep(.nut-checkbox__label) {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
 .radio-wrapper {
   display: flex;
   // justify-content: start;
@@ -849,7 +937,7 @@ const urlValidator = (val: string): Promise<boolean> => {
   }
   .swtich-wrapper {
     display: flex;
-    justify-content: end;
+    justify-content: flex-end
   }
 }
 
@@ -858,7 +946,7 @@ const urlValidator = (val: string): Promise<boolean> => {
 
   .radio-wrapper {
     display: flex;
-    // justify-content: end;
+    justify-content: flex-start;
 
     // :deep(.nut-radio__button.false) {
     //   background: var(--divider-color);
@@ -869,10 +957,11 @@ const urlValidator = (val: string): Promise<boolean> => {
       font-size: 12px;
       color: var(--second-text-color);
       margin: 0px 5px 0 0;
-      padding: 7.5px 2.5px;
+      padding: 7.5px 2.5px 4px;
       cursor: pointer;
       -webkit-user-select: none;
       user-select: none;
+      border-bottom: 1px solid transparent;
     }
     .current {
       border-bottom: 1px solid var(--primary-color);
@@ -882,6 +971,7 @@ const urlValidator = (val: string): Promise<boolean> => {
 
   :deep(.nut-form-item__label) {
     width: 100%;
+    font-size: 12px;
     // margin-bottom: 12px;
   }
 
@@ -905,7 +995,9 @@ const urlValidator = (val: string): Promise<boolean> => {
         align-items: center;
         font-size: 14px;
         color: var(--second-text-color);
-
+        .icon {
+          margin-right: 8px;
+        }
         span {
           max-width: 56vw;
           display: -webkit-box;
@@ -919,8 +1011,13 @@ const urlValidator = (val: string): Promise<boolean> => {
         .sub-item {
           display: flex;
           flex-wrap: wrap;
+          align-items: center;
+          margin: -4px 0 0 -4px;
+          .name {
+            margin: 4px 0 0 4px;
+          }
           .tag {
-            margin: 0px 2px 4px 2px;
+            margin: 4px 0 0 4px;
             // white-space: nowrap;
           }
         }

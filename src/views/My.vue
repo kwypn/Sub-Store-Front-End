@@ -539,13 +539,13 @@ const setTag = (current) => {
     .radio-wrapper {
       display: flex;
       align-items: center;
-      // justify-content: end;
+      
 
       .tag {
         font-size: 12px;
         color: var(--second-text-color);
         margin: 0px 5px;
-        padding: 7.5px 2.5px;
+        padding: 7.5px 2.5px 4px;
         cursor: pointer;
         -webkit-user-select: none;
         user-select: none;
