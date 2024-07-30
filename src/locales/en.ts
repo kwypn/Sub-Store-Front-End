@@ -34,6 +34,7 @@ export default {
       editScript: 'Script Edit',
       subEditor: 'Subscription Editor',
       fileEditor: 'File Editor',
+      iconCollection: 'Icon Collection',
       themeSetting: 'Theme Setting',
       moreSetting: 'More Setting',
       apiSetting: 'Backend Setting',
@@ -168,7 +169,7 @@ export default {
       tips: {
         ok: 'View Document',
         cancel: 'Cancel',
-        desc: 'Subscription Link Parameters Description',
+        desc: 'Some functions require parameters. Please check the document.',
         title: 'Subscription Link Parameters',
         content: '"target=SurgeMac"\n+ ShadowsocksR/External Proxy Program\n\n"includeUnsupportedProxy=true"\nIncludes protocols not supported by the official/store version',
       }
@@ -224,6 +225,14 @@ export default {
           label: 'Display Name',
           placeholder: 'The display name',
         },
+        subInfoUrl: {
+          label: 'Sub Info URL',
+          placeholder: 'The URL for fetching subscription usage info',
+        },
+        subInfoUserAgent: {
+          label: 'Sub Info User-Agent',
+          placeholder: 'User-Agent for fetching subscription usage info',
+        },
         tag: {
           label: 'Tag(s)',
           placeholder: 'The tag(s) (separated by comma) will be used for grouping.',
@@ -239,7 +248,12 @@ export default {
         },
         url: {
           label: 'URL',
-          placeholder: 'Subscription URL (please separate multiple subscriptions with a new line). Supported parameters: cacheKey - Read the last successful cache from here when the request fails,validCheck - error will be reported when expired or there is no remaining traffic, flowUserAgent - the User-Agent for fetching subscription usage info, showRemaining - show remaining traffic instead of usage, noFlow - do not query for flow, hideExpire - hide expiration time, noCache - do not use cache, resetDay - the day when monthly data usage resets, startDate - subscription start date, cycleDays - reset cycle (in days). For example: http://a.com?token=1#cycleDays=31&startDate=2024-06-04 or http://a.com?token=1#resetDay=15',
+          placeholder: 'Multiple lines and parameters are supported, please click the button on the left to see the usage.',
+          tips: {
+            label: 'Usage',
+            title: 'Subscription URL(s)',
+            content: 'Subscription URL (please separate multiple subscriptions with a new line). \n\nSupported parameters:\n\ncacheKey: Setting the name of the optimistic cache. Its value can be managed in the persistent store(suitable for subscriptions that often fail to fetch).\n\nvalidCheck: error will be reported when expired or there is no remaining traffic\n\nflowUserAgent: the User-Agent for fetching subscription usage info\n\nflowUrl: the URL for fetching subscription usage info(using the content of the response body)\n\nshowRemaining: show remaining traffic instead of usage\n\nnoFlow: do not query for flow\n\nhideExpire: hide expiration time\n\nnoCache: do not use cache\n\nresetDay: the day when monthly data usage resets\n\nstartDate: subscription start date\n\ncycleDays: reset cycle (in days).\n\nFor example: http://a.com?token=1#cycleDays=31&startDate=2024-06-04 \nor http://a.com?token=1#resetDay=15',
+          },
           isEmpty: 'URL cannot be empty',
           isIllegal: 'Invalid URL',
         },
@@ -248,11 +262,15 @@ export default {
         },
         content: {
           label: 'Content',
-          placeholder: 'The content of the subscription: 1. Multiple single-line proxy protocols/JSON/URI 2. Complete Base64/YAML',
+          placeholder: '',
+          tips: {
+            title: 'The content of the subscription',
+            content: 'Subscription content:\n\n1. Multiple single-line proxy protocols/JSON/URI\n\n2. Complete Base64/YAML',
+          },
         },
         icon: {
           label: 'Icon',
-          placeholder: 'The URL of the icon',
+          placeholder: 'Click on the left or top icon, fill in the icon link from the icon library, do not use jpg.',
         },
         ignoreFailedRemoteSub: {
           label: 'Ignore failed remote subscription(s)'
@@ -342,9 +360,9 @@ export default {
         },
         'Resolve Domain Operator': {
           label: 'Resolve Domain',
-          des: 'Providers(can be controlled by the node field "no-resolve")',
-          options: ['Google', 'IP-API', 'Cloudflare', 'Ali', 'Tencent'],
-          types: ['IPv4', 'IPv6', 'IP4P'],
+          des: 'Providers(can be controlled by the node field "_no-resolve")',
+          options: ['Google', 'IP-API', 'Cloudflare', 'Ali', 'Tencent', 'Custom'],
+          types: ['IPv4', 'IPv6'],
           filters: ['Disabled', 'Remove Failed', 'IP Only', 'IPv4 Only', 'IPv6 Only'],
           cache: ['Enabled', 'Disabled'],
           tipsTitle: 'domain Tips',
@@ -370,6 +388,7 @@ export default {
             'TUIC',
             'Hysteria',
             'Hysteria 2',
+            'Juicity',
             'WireGuard',
             'SSH',
             'External Proxy Program',
@@ -623,6 +642,31 @@ export default {
     download: {
       content: '⚠️ This feature will only add files to the sync configuration that are not already in the sync configuration.\nYou need to manually set the source.',
       confirm: 'Restore From Gist',
+    },
+  },
+  // 图标仓库页
+  iconCollectionPage: {
+    iconCollection: 'Icon Collection',
+    iconCollectionPlaceholder: 'Please input icon collection url',
+    iconName: 'Icon Name',
+    iconNamePlaceholder: 'Please input icon name',
+    iconCollectionKey: 'Icon Collection Key',
+    iconCollectionKeyPlaceholder: 'Default Key: icons',
+    iconUrlKey: 'Icon url key',
+    iconUrlKeyPlaceholder: 'Default Key: url',
+    errorIconCollectionUrlTips: 'Please enter correct url',
+    copySuccessTips: 'The icon url has been copied',
+    emptyCollectionTitle: 'No icon data yet',
+    emptyCollectionDesc:
+      'Please manually refresh or select a different icon collection',
+    refreshBtn: 'Manual refresh',
+    selectCollectionBtn: 'Select a icon collection',
+    more: 'More',
+    useCustomIconCollection: 'Use Custom Icon Collection',
+    collectionPicker: {
+      title: 'Select a icon collection',
+      cancel: 'Cancel',
+      confirm: 'Confirm',
     },
   },
   themeSettingPage: {
