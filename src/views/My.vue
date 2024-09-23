@@ -234,7 +234,7 @@
     </div>
 
     <div class="env-block">
-      <img v-if="icon" :src="icon" alt="" class="auto-reverse" />
+      <img v-if="icon" :src="env.meta?.node?.env?.SUB_STORE_BACKEND_CUSTOM_ICON || icon" alt="" class="auto-reverse" />
       <a
         v-if="env.hasNewVersion"
         target="_blank"
@@ -247,7 +247,7 @@
         <nut-badge value="NEW">v{{ env.version }}</nut-badge>
       </a>
       <p v-else>v{{ env.version }}</p>
-      <p>{{ env.backend }}</p>
+      <p>{{ env.meta?.node?.env?.SUB_STORE_BACKEND_CUSTOM_NAME || env.backend }}</p>
     </div>
   </div>
 </template>
@@ -317,7 +317,7 @@ const fileInput = ref(null);
 const toggleEditMode = async () => {
   isEditLoading.value = true;
   if (isEditing.value) {
-    await settingsStore.editSettings({
+    await settingsStore.editGistSettings({
       syncPlatform: syncPlatformInput.value,
       githubUser: userInput.value,
       gistToken: tokenInput.value,
