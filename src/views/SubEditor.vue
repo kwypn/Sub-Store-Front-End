@@ -61,12 +61,17 @@
           :label="$t(`editorPage.subConfig.basic.tag.label`)"
           prop="tag"
         >
-          <input
+          <nut-input
             class="nut-input-text"
             v-model.trim="form.tag"
+            :border="false"
             :placeholder="$t(`editorPage.subConfig.basic.tag.placeholder`)"
             type="text"
-          />
+            input-align="right"
+            right-icon="rect-right"
+            @click-right-icon="showTagPopup('tag')"
+          >
+          </nut-input>
         </nut-form-item>
         <!-- icon -->
         <nut-form-item
@@ -157,7 +162,7 @@
             /> -->
             <button class="cimg-button" @click="isDis = false">
               <img src="" />
-              全屏编辑
+              {{ $t(`editorPage.subConfig.basic.url.tips.fullScreenEdit`) }}
               <!-- 测试 后续再改效果 -->
             </button>
             <span class="button-tips" @click="contentTips">
@@ -252,14 +257,16 @@
             prop="subscriptionTags"
           >
             <nut-input
-                :border="false"
-                class="nut-input-text"
-                v-model.trim="form.subscriptionTags"
-                :placeholder="$t(`editorPage.subConfig.basic.subscriptionTags.placeholder`)"
-                type="text"
-                input-align="right"
-                left-icon="tips"
-                @click-left-icon="subscriptionTagsTips"
+              :border="false"
+              class="nut-input-text"
+              v-model.trim="form.subscriptionTags"
+              :placeholder="$t(`editorPage.subConfig.basic.subscriptionTags.placeholder`)"
+              type="text"
+              input-align="right"
+              left-icon="tips"
+              right-icon="rect-right"
+              @click-left-icon="subscriptionTagsTips"
+              @click-right-icon="showTagPopup('linkTag')"
             />
           </nut-form-item>
           <nut-form-item
@@ -371,7 +378,7 @@
 <div v-else style="width: 100%;max-height: 95vh;">
     <button class="cimg-button" @click="isDis = true">
       <img src="" />
-      取消全屏
+      {{ $t(`editorPage.subConfig.basic.url.tips.fullScreenEditCancel`) }}
     </button>
     <cmView :isReadOnly="false" id="SubEditer" />
   </div>
@@ -386,6 +393,12 @@
     ref="iconPopupRef"
     @setIcon="setIcon">
   </icon-popup>
+  <tag-popup
+    v-model:visible="tagPopupVisible"
+    ref="tagPopupRef"
+    :currentTag="currentTag"
+    @setTag="setTagValue">
+  </tag-popup>
 </template>
 
 <script lang="ts" setup>
@@ -410,6 +423,7 @@ import HandleDuplicate from "@/views/editor/components/HandleDuplicate.vue";
 import Regex from "@/views/editor/components/Regex.vue";
 import Script from "@/views/editor/components/Script.vue";
 import IconPopup from "@/views/icon/IconPopup.vue";
+import TagPopup from "@/components/TagPopup.vue";
 import { Dialog, Toast } from "@nutui/nutui";
 import { storeToRefs } from "pinia";
 import {
@@ -485,6 +499,27 @@ const padding = bottomSafeArea.value + "px";
     return result
   });
   const tag = ref('all');
+  const tagPopupVisible = ref(false);
+  const tagType = ref('tag'); // 标签tag | 关联订阅标签linkTag
+  const tagPopupRef = ref(null);
+  const currentTag = computed(() => {
+    if (tagType.value === 'linkTag') {
+      return form.subscriptionTags
+    } else {
+      return form.tag
+    }
+  })
+  const showTagPopup = (type:string) => {
+    tagType.value = type || 'tag'
+    tagPopupVisible.value = true
+  };
+  const setTagValue = (tag: any) => {
+    if (tagType.value === 'linkTag') {
+      form.subscriptionTags = tag;
+    } else {
+      form.tag = tag;      
+    }
+  };
   const selectedSubs = computed(() => {
     if(!Array.isArray(form.subscriptions) || form.subscriptions.length === 0) return ''
     return `: ${form.subscriptions.map((name) => {
@@ -1099,6 +1134,13 @@ const handleEditGlobalClick = () => {
         text-decoration: underline;
         font-size: 12px;
         // color: #fa2c19;
+      }
+    }
+  }
+  :deep(.nut-input-text){
+    .nut-input-inner {
+      .nut-input-right-icon {
+        margin-left: 8px;
       }
     }
   }

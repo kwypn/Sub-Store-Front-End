@@ -111,7 +111,11 @@ export default {
     },
     addSubTitle: '选择要创建的订阅类型',
     previewTitle: '预览/拷贝订阅',
-
+    tag: {
+      addTagTitle: '添加标签',
+      tagPlaceholder: '请输入标签名称',
+      addTagBtn: '+ 新建标签',
+    },
     emptySub: {
       title: '你还没有添加订阅',
       desc: '添加后开始使用 Sub-Store',
@@ -239,11 +243,11 @@ export default {
         },
         tag: {
           label: '标签',
-          placeholder: '标签(用 , 分隔) 将用于分组',
+          placeholder: '点击右侧图标选择，标签(用 , 分隔) 将用于分组',
         },
         subscriptionTags: {
           label: '关联订阅标签',
-          placeholder: '使用标签关联单条订阅(用 , 分隔)',
+          placeholder: '点击右侧图标选择，使用标签关联单条订阅(用 , 分隔)',
         },
         source: {
           label: '来源',
@@ -258,6 +262,8 @@ export default {
           label: '链接',
           placeholder: '支持多行和参数, 请点击左侧的使用说明查看用法',
           tips: {
+            fullScreenEdit: '全屏编辑',
+            fullScreenEditCancel: '取消全屏',
             label: '使用说明',
             title: '订阅链接',
             content: '支持换行输入多个订阅\n\n支持以下参数\n\ncacheKey: 设置乐观缓存的名称 开启后也可自行在持久化缓存中管理(适合经常拉取失败的订阅)\nvalidCheck: 过期或无剩余流量时报错\nflowUserAgent: 查询流量时使用的 User-Agent\nflowUrl: 自定义查询流量的 URL(将使用响应体的内容)\nnoFlow: 不查询流量\nhideExpire: 隐藏到期\nshowRemaining: 显示剩余流量而不是已用流量\nnoCache: 不使用缓存\nresetDay: 每月流量重置日\nstartDate: 订阅开始日期\ncycleDays: 订阅重置周期(单位: 天)\n\n例: http://a.com?token=1#cycleDays=31&startDate=2024-06-04\n或 http://a.com?token=1#resetDay=15',
