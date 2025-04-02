@@ -11,6 +11,7 @@ import NotFound from '@/views/NotFound.vue';
 
 import File from '@/views/File.vue';
 import FileEditor from '@/views/FileEditor.vue';
+import FilePreview from '@/views/FilePreview.vue';
 // import editScript from '@/views/editCode/editScript.vue';
 import IconCollection from '@/views/icon/IconCollection.vue';
 
@@ -18,6 +19,9 @@ import Sub from '@/views/Sub.vue';
 import SubEditor from '@/views/SubEditor.vue';
 
 import Sync from '@/views/Sync.vue';
+
+import ShareManage from '@/views/share/Share.vue';
+
 // import themeSetting from '@/views/themeSetting.vue';
 import moreSetting from '@/views/settings/moreSetting.vue';
 import { Toast } from '@nutui/nutui';
@@ -113,6 +117,15 @@ const router = createRouter({
             needNavBack: false,
           },
         },
+        {
+          path: '/share/manage',
+          component: ShareManage,
+          meta: {
+            title: 'shareManage',
+            needTabBar: false,
+            needNavBack: true,
+          },
+        },
         // {
         //   path: '/edit/Script/:id',
         //   component: editScript,
@@ -122,6 +135,15 @@ const router = createRouter({
         //     needNavBack: true,
         //   },
         // },
+        {
+          path: '/preview',
+          component: FilePreview,
+          meta: {
+            title: 'preview',
+            needTabBar: false,
+            needNavBack: false,
+          },
+        },
         {
           path: '/edit/:editType(files)/:id',
           component: FileEditor,
@@ -235,6 +257,7 @@ router.afterEach(async (to, from) => {
   }
 });
 router.beforeEach((to, from) => {
+  document.title = 'Sub Store';
   // console.log(`beforeEach ${from.path} => ${to.path}`)
   if (!globalStore) {
     globalStore = useGlobalStore();
@@ -285,7 +308,7 @@ router.beforeResolve(async (to, from) => {
   // 进入编辑页面前查询是否存在订阅
   if (to.fullPath.startsWith('/edit/')) {
     const name = to.params.id as string;
-    if (name !== 'UNTITLED') {
+    if (!['UNTITLED', 'UNTITLED-mihomoProfile'].includes(name)) {
       try {
         if (to.params.editType === 'subs') {
           await useSubsApi().getOne('sub', name);

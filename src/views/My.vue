@@ -221,13 +221,18 @@
 
       <nut-cell-group>
         <nut-cell
+          v-if="shareBtnVisible"
+          :title="$t(`moreSettingPage.shareManageTitle`)"
+          class="change-themes"
+          @click.stop="onClickShareManage"
+          is-link
+        ></nut-cell>
+        <nut-cell
           :title="$t(`apiSettingPage.apiSettingTitle`)"
           class="change-themes"
           @click.stop="onClickAPISetting"
           is-link
         ></nut-cell>
-        
-
         <nut-cell
           :title="$t(`moreSettingPage.moreSettingTitle`)"
           class="change-themes"
@@ -301,10 +306,17 @@ const displayAvatar = computed(() => {
 
 const { icon, env } = useBackend();
 
+const shareBtnVisible = computed(() => {
+  return env.value?.feature?.share;
+});
+
 const onClickAPISetting = () => {
   router.push(`/settings/api`);
 };
 
+const onClickShareManage = () => {
+  router.push(`/share/manage`);
+};
 const onClickMore = () => {
   router.push(`/settings/more`);
 };
@@ -385,15 +397,15 @@ const toggleSyncPlatform = () => {
   
 };
 const setDisplayInfo = () => {
-  syncPlatformInput.value = syncPlatform.value || '';
-  userInput.value = githubUser.value || t(`myPage.placeholder.noGithubUser`);
+  syncPlatformInput.value = syncPlatform.value || "";
+  userInput.value = githubUser.value || "";
   tokenInput.value = gistToken.value
-    ? gistToken.value.slice(0, 6) + "************"
-    : t(`myPage.placeholder.noGistToken`);
-  uaInput.value = defaultUserAgent.value || t(`myPage.placeholder.noDefaultUserAgent`);
-  proxyInput.value = defaultProxy.value || t(`myPage.placeholder.noDefaultProxy`);
-  timeoutInput.value = defaultTimeout.value || t(`myPage.placeholder.noDefaultTimeout`);
-  cacheThresholdInput.value = cacheThreshold.value || t(`myPage.placeholder.noCacheThreshold`);
+    ? `${gistToken.value.slice(0, 6)}************`
+    : "";
+  uaInput.value = defaultUserAgent.value || "";
+  proxyInput.value = defaultProxy.value || "";
+  timeoutInput.value = defaultTimeout.value || "";
+  cacheThresholdInput.value = cacheThreshold.value || "";
 };
 
 // 同步 上传
@@ -577,6 +589,7 @@ const setTag = (current) => {
         cursor: pointer;
         -webkit-user-select: none;
         user-select: none;
+        flex-shrink: 0;
       }
       .current {
         border-bottom: 1px solid var(--primary-color);
@@ -709,7 +722,7 @@ const setTag = (current) => {
 
         .upload-btn,
         .download-btn {
-          padding: 0 12px;
+          padding: 0 10px;
           width: 116px;
         }
 

@@ -3,7 +3,7 @@
   <div class="page-wrapper" @click="handleEditGlobalClick">
     <!-- 基础表单 -->
     <div class="form-block-wrapper">
-      <div class="sticky-title-icon-container">
+      <div v-if="appearanceSetting.isShowIcon" class="sticky-title-icon-container">
         <nut-image
           :class="{ 'sub-item-customer-icon': !appearanceSetting.isIconColor }"
           :src="subIcon"
@@ -54,6 +54,25 @@
               $t(`editorPage.subConfig.basic.displayName.placeholder`)
             "
             type="text"
+          />
+        </nut-form-item>
+        <!-- remark -->
+        <nut-form-item
+          :label="$t(`editorPage.subConfig.basic.remark.label`)"
+          prop="remark"
+        >
+          <nut-textarea
+            class="nut-input-text"
+            :border="false"
+            v-model="form.remark"
+            :placeholder="
+              $t(`editorPage.subConfig.basic.remark.placeholder`)
+            "
+            type="text"
+            input-align="right"
+            rows="1"
+            :autosize="{ maxHeight: 140 }"
+            max-length="100"
           />
         </nut-form-item>
         <!-- tag -->
@@ -165,6 +184,10 @@
               {{ $t(`editorPage.subConfig.basic.url.tips.fullScreenEdit`) }}
               <!-- 测试 后续再改效果 -->
             </button>
+            <input type="file" ref="fileInput" @change="fileChange" style="display: none">
+            <button class="cimg-button" @click="upload">
+              {{ $t(`editorPage.subConfig.basic.url.tips.importFromFile`) }}
+            </button>
             <span class="button-tips" @click="contentTips">
                 <span class="tips">
                   <span>{{$t(`editorPage.subConfig.basic.url.tips.label`)}}</span>
@@ -176,6 +199,16 @@
             </div>
           </nut-form-item>
           <!-- ua -->
+          <nut-form-item
+            :label="$t(`editorPage.subConfig.basic.passThroughUA.label`)"
+            prop="passThroughUA"
+            class="ignore-failed-wrapper"
+            v-if="form.source === 'remote'"
+          >
+            <div class="switch-wrapper">
+              <nut-switch v-model="form.passThroughUA" />
+            </div>
+          </nut-form-item>
           <nut-form-item
             :label="$t(`editorPage.subConfig.basic.ua.label`)"
             prop="ua"
@@ -316,7 +349,24 @@
               </nut-checkbox>
             </nut-checkboxgroup>
             </nut-form-item>
-              <nut-form-item
+            <nut-form-item
+              :label="$t(`editorPage.subConfig.basic.subUserinfo.label`)"
+              prop="subUserinfo"
+            >
+              <nut-input
+                :border="false"
+                class="nut-input-text"
+                v-model.trim="form.subUserinfo"
+                :placeholder="
+                  $t(`editorPage.subConfig.basic.subUserinfo.placeholder`)
+                "
+                type="text"
+                input-align="right"
+                left-icon="tips"
+                @click-left-icon="subUserinfoTips"
+              />
+            </nut-form-item>
+            <nut-form-item
               :label="$t(`editorPage.subConfig.basic.proxy.label`)"
               prop="proxy"
             >
@@ -356,6 +406,7 @@
       @updateCustomNameModeFlag="updateCustomNameModeFlag"
       @addAction="addAction"
       @deleteAction="deleteAction"
+      @toggleAction="toggleAction"
     />
   </div>
 
@@ -411,7 +462,7 @@ import { useAppNotifyStore } from "@/store/appNotify";
 import { useGlobalStore } from "@/store/global";
 import { useSettingsStore } from '@/store/settings';
 import { useSubsStore } from "@/store/subs";
-import { addItem, deleteItem } from "@/utils/actionsOperate";
+import { addItem, deleteItem, toggleItem } from "@/utils/actionsOperate";
 import { actionsToProcess } from "@/utils/actionsToPorcess";
 import { initStores } from "@/utils/initApp";
 import CompareTable from "@/views/CompareTable.vue";
@@ -521,7 +572,7 @@ const padding = bottomSafeArea.value + "px";
     }
   };
   const selectedSubs = computed(() => {
-    if(!Array.isArray(form.subscriptions) || form.subscriptions.length === 0) return ''
+    if(!Array.isArray(form.subscriptions) || form.subscriptions.length === 0) return `: ${t(`editorPage.subConfig.basic.subscriptions.empty`)}`
     return `: ${form.subscriptions.map((name) => {
       const sub = subsStore.getOneSub(name);
       return sub?.displayName || sub?.["display-name"] || sub.name;
@@ -537,12 +588,15 @@ const ruleForm = ref<any>(null);
 const actionsChecked = reactive([]);
 const actionsList = reactive([]);
 const isget = ref(false);
+const fileInput = ref(null);
 const form = reactive<any>({
   name: "",
   displayName: "",
   form: "",
+  remark: "",
   mergeSources: "",
   ignoreFailedRemoteSub: false,
+  passThroughUA: false,
   icon: "",
   process: [
     {
@@ -586,8 +640,10 @@ watchEffect(() => {
   const newProcess = JSON.parse(JSON.stringify(sourceData.process));
   form.mergeSources = sourceData.mergeSources;
   form.ignoreFailedRemoteSub = sourceData.ignoreFailedRemoteSub;
+  form.passThroughUA = sourceData.passThroughUA;
   form.name = sourceData.name;
   form.displayName = sourceData.displayName || sourceData["display-name"];
+  form.remark = sourceData.remark;
   form.icon = sourceData.icon;
   form.process = newProcess;
   form.subUserinfo = sourceData.subUserinfo;
@@ -615,7 +671,7 @@ watchEffect(() => {
 
   if (sourceData.process.length > 0) {
     form.process.forEach((item) => {
-      const { type, id, customName } = item;
+      const { type, id, customName, disabled } = item;
 
       if (!ignoreList.includes(type)) {
         actionsChecked.push([id, true]);
@@ -625,6 +681,7 @@ watchEffect(() => {
           customName,
           tipsDes: t(`editorPage.subConfig.nodeActions['${type}'].tipsDes`),
           component: null,
+          enabled: !disabled,
         };
         switch (type) {
           case "Flag Operator":
@@ -669,6 +726,10 @@ const deleteAction = (id) => {
   deleteItem(form, actionsList, actionsChecked, id);
 };
 
+const toggleAction = (id) => {
+  toggleItem(actionsList, id);
+};
+
 const closeCompare = () => {
   document.querySelector("html").style["overflow-y"] = "";
   document.querySelector("html").style.height = "";
@@ -686,7 +747,35 @@ const closeCompare = () => {
 
   router.back();
 };
+const upload = async() => {
+  try {
+    fileInput.value.click()
+  } catch (e) {
+    console.error(e);
+  }
+}
+const fileChange = async (event) => {
+  const file = event.target.files[0];
+  if(!file) return
+  try {
+    const reader = new FileReader();
+    reader.readAsText(file);
+    reader.onload = () => {
+      cmStore.setEditCode("SubEditer", String(reader.result));
+    }
 
+    reader.onerror = e => {
+      throw e
+    }
+    
+  } catch (e) {
+    showNotify({
+      type: "danger",
+      title: '文件导入失败',
+    });
+    console.error(e);
+  }
+};
 const compare = () => {
   ruleForm.value.validate().then(async ({ valid, errors }: any) => {
     // 如果验证失败
@@ -710,6 +799,22 @@ const compare = () => {
     });
     const data: any = JSON.parse(JSON.stringify(toRaw(form)));
     data.process = actionsToProcess(data.process, actionsList, ignoreList);
+    data.tag = [
+      ...new Set(
+        (data.tag || "")
+          .split(",")
+          .map((item: string) => item.trim())
+          .filter((item: string) => item.length)
+      ),
+    ];
+    data.subscriptionTags = [
+      ...new Set(
+        (data.subscriptionTags || "")
+          .split(",")
+          .map((item: string) => item.trim())
+          .filter((item: string) => item.length)
+      ),
+    ];
 
     // 过滤掉预览开关关闭的操作
     actionsChecked.forEach((item) => {
@@ -797,7 +902,7 @@ const submit = () => {
     data["display-name"] = data.displayName;
     data.process = actionsToProcess(data.process, actionsList, ignoreList);
 
-    // console.log('submit.....\n', data);
+    console.log('submit.....\n', data);
 
     let res = null;
 
@@ -915,7 +1020,7 @@ const urlValidator = (val: string): Promise<boolean> => {
   const subUserinfoTips = () => {
     Dialog({
         title: '手动设置订阅流量信息',
-        content: '格式:\n\nupload=1024; download=10240; total=102400; expire=4115721600',
+        content: '若填写链接, 则使用链接的响应内容作为值.\n\n此项值的格式为:\n\nupload=1024; download=10240; total=102400; expire=4115721600; reset_day=14; plan_name=VIP1; app_url=http://a.com\n\n1. app_url, 订阅将有一个可点击跳转的按钮\n\n2. plan_name, hover 时将显示套餐名称\n\n3. reset_day, 流量重置剩余天数(若要设置周期性重置, 可查看订阅链接中的参数说明)\n\n⚠️ 注意: 手动设置的订阅流量信息会附加到订阅自己的流量信息之前. 若包含不合法的内容, 订阅将无法正常使用\n\n例如: http://官网.com 应编码为 http%3A%2F%2F%E5%AE%98%E7%BD%91.com',
         popClass: 'auto-dialog',
         okText: 'OK',
         noCancelBtn: true,
@@ -1105,6 +1210,11 @@ const handleEditGlobalClick = () => {
       overflow: hidden;
       background: transparent;
       padding: 10px;
+      :deep(img) {
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+      }
     }
     .sub-item-customer-icon {
       :deep(img) {

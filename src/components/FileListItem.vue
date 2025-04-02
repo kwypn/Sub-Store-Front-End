@@ -10,32 +10,34 @@
         class="sub-img-wrappers"
         :style="{ 'margin-top': appearanceSetting.isSimpleMode ? '5px' : '0' }"
       >
-        <div v-if="appearanceSetting.isIconColor">
-          <nut-avatar
-            v-if="props[props.type].icon"
-            :size="appearanceSetting.isSimpleMode ? '36' : '48'"
-            :url="props[props.type].icon"
-            bg-color=""
-          />
-          <nut-avatar
-            v-else
-            :size="appearanceSetting.isSimpleMode ? '36' : '48'"
-            :url="icon"
-            bg-color=""
-          />
-        </div>
-        <div v-else>
-          <nut-avatar
-            class="sub-item-customer-icon"
-            :size="appearanceSetting.isSimpleMode ? '36' : '48'"
-            :url="props[props.type].icon || icon"
-            bg-color=""
-          />
+        <!-- icon visible -->
+        <div v-if="appearanceSetting.isShowIcon">
+          <div v-if="appearanceSetting.isIconColor">
+            <nut-avatar
+              v-if="props[props.type].icon"
+              :size="appearanceSetting.isSimpleMode ? '36' : '48'"
+              :url="props[props.type].icon"
+              bg-color=""
+            />
+            <nut-avatar
+              v-else
+              :size="appearanceSetting.isSimpleMode ? '36' : '48'"
+              :url="icon"
+              bg-color=""
+            />
+          </div>
+          <div v-else>
+            <nut-avatar
+              class="sub-item-customer-icon"
+              :size="appearanceSetting.isSimpleMode ? '36' : '48'"
+              :url="props[props.type].icon || icon"
+              bg-color=""
+            />
+          </div>
         </div>
       </div>
       <div class="sub-item-content">
         <div class="sub-item-title-wrapper">
-
           <h3 v-if="!appearanceSetting.isSimpleMode" class="sub-item-title">
             {{ displayName || name }}
           </h3>
@@ -48,11 +50,24 @@
             style="position: relative"
             :style="{ top: appearanceSetting.isSimpleMode ? '8px' : '0' }"
           >
+            <!-- 预览 -->
+            <button
+              v-if="!appearanceSetting.isShowIcon"
+              class="compare-sub-link"
+              @click.stop="previewFile"
+            >
+              <font-awesome-icon icon="fa-solid fa-eye" />
+            </button>
+            <button
+              v-if="shareBtnVisible"
+              class="share-sub-link"
+              @click.stop="onClickShareLink"
+            >
+              <font-awesome-icon icon="fa-solid fa-share-nodes" />
+            </button>
             <button class="copy-sub-link" @click.stop="onClickCopyLink">
               <font-awesome-icon icon="fa-solid fa-clone" />
             </button>
-  
-
             <!-- 编辑 -->
             <button
               v-if="!appearanceSetting.isSimpleMode"
@@ -83,6 +98,9 @@
               </span>
             </template>
           </p>
+          <p v-if="remark" class="sub-item-remark">
+            <span>{{ remarkText }}</span>
+          </p>
         </template>
 
         <template v-else>
@@ -92,6 +110,12 @@
                 {{ flow }}
               </span>
             </template>
+          </p>
+          <p
+            v-if="remark && appearanceSetting.isSimpleShowRemark"
+            class="sub-item-remark"
+          >
+            <span>{{ remarkText }}</span>
           </p>
         </template>
       </div>
@@ -107,6 +131,20 @@
           @click="onClickCopyConfig"
         >
           <font-awesome-icon icon="fa-solid fa-paste" />
+        </nut-button>
+      </div>
+      <div class="sub-item-swipe-btn-wrapper">
+        <!-- <a
+          :href="`${host}/api/wholeFile/${encodeURIComponent(name)}?raw=1`"
+          target="_blank"
+        > -->
+        <nut-button
+          shape="square"
+          type="success"
+          class="sub-item-swipe-btn"
+          @click="onClickExportFile(name)"
+        >
+          <font-awesome-icon icon="fa-solid fa-file-export" />
         </nut-button>
       </div>
       <!-- preview -->
@@ -137,6 +175,16 @@
           @click="onClickCopyConfig"
         >
           <font-awesome-icon icon="fa-solid fa-paste" />
+        </nut-button>
+      </div>
+      <div class="sub-item-swipe-btn-wrapper">
+        <nut-button
+          shape="square"
+          type="success"
+          class="sub-item-swipe-btn"
+          @click="onClickExportFile(name)"
+        >
+          <font-awesome-icon icon="fa-solid fa-file-export" />
         </nut-button>
       </div>
       <!-- <div class="sub-item-swipe-btn-wrapper">
@@ -187,11 +235,14 @@
   import { useI18n } from 'vue-i18n';
   import { useRouter, useRoute } from 'vue-router';
   import { useHostAPI } from '@/hooks/useHostAPI';
+  import { useBackend } from "@/hooks/useBackend";
+  import clashmetaIcon from '@/assets/icons/clashmeta_color.png';
 
   const { copy, isSupported } = useClipboard();
   const { toClipboard: copyFallback } = useV3Clipboard();
 
   const { t } = useI18n();
+  const { env } = useBackend();
 
   const props = defineProps<{
     type: 'sub' | 'collection' | 'file';
@@ -231,8 +282,17 @@
     props[props.type].displayName || props[props.type]['display-name'];
 
   const name = props[props.type].name;
+  const remark = props[props.type].remark;
+  const remarkText = computed(() => {
+    if (remark) {
+      return remark;
+    } else {
+      return "";
+    }
+  })
   const { flows } = storeToRefs(subsStore);
   const icon = computed(() => {
+    if (props.file.type === 'mihomoProfile') return clashmetaIcon;
     return appearanceSetting.value.isDefaultIcon ? logoIcon : logoRedIcon;
   })
   const collectionDetail = computed(() => {
@@ -251,6 +311,7 @@
   });
 
   const flow = computed(() => {
+    if (props.file.type === 'mihomoProfile') return t('filePage.type.mihomoProfile');
     if (props.file.source === 'remote') return t('filePage.source.remote');
     return t('filePage.source.local');
   });
@@ -363,7 +424,25 @@
 
   const { showNotify } = useAppNotifyStore();
   const { currentUrl: host } = useHostAPI();
+  const emit = defineEmits(["share"]);
 
+  const shareBtnVisible = computed(() => {
+    return env.value?.feature?.share;
+  });
+
+  const onClickExportFile = (name) => {
+    swipeClose();
+    const url = `${host.value}/api/wholeFile/${encodeURIComponent(name)}?raw=1`;
+    console.log('url', url);
+    window.open(url, '_blank');  // 在新窗口中打开链接
+  };
+
+  const onClickShareLink = async () => {
+    console.log('props', props)
+    const type = props.type;
+    const data = props.file;
+    emit("share", data, type);
+  };
   const onClickCopyLink = async () => {
     const path = `/api/file/${encodeURIComponent(name)}`;
     const url = `${host.value}${path}`;
@@ -430,7 +509,8 @@
           font-size: 16px;
           color: var(--primary-text-color);
         }
-
+        .compare-sub-link,
+        .share-sub-link,
         .copy-sub-link,
         .refresh-sub-flow {
           background-color: transparent;
@@ -472,6 +552,22 @@
         span {
           display: block;
           line-height: 1.8;
+        }
+      }
+      .sub-item-remark {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        word-wrap: break-word;
+        word-break: break-all;
+        overflow: hidden;
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--comment-text-color);
+
+        span {
+          display: block;
+          line-height: 1.5;
         }
       }
 
