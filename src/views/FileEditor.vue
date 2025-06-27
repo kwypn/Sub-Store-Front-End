@@ -5,7 +5,7 @@
       <div class="form-block-wrapper">
         <div v-if="appearanceSetting.isShowIcon" class="sticky-title-icon-container">
           <nut-image
-            :class="{ 'sub-item-customer-icon': !appearanceSetting.isIconColor }"
+            :class="{ 'sub-item-customer-icon': !isIconColor }"
             :src="fileIcon"
             fit="cover"
             show-loading
@@ -89,6 +89,16 @@
               left-icon="shop"
               @click-left-icon="showIconPopup"
             />
+          </nut-form-item>
+          <!-- isIconColor -->
+          <nut-form-item
+            :label="$t(`editorPage.subConfig.basic.isIconColor.label`)"
+            prop="isIconColor"
+            class="ignore-failed-wrapper"
+          >
+            <div class="switch-wrapper">
+              <nut-switch v-model="form.isIconColor" />
+            </div>
           </nut-form-item>
           <nut-form-item
             :label="$t(`editorPage.subConfig.basic.subInfoUrl.label`)"
@@ -310,8 +320,22 @@
               prop="ignoreFailedRemoteFile"
               class="ignore-failed-wrapper"
             >
-              <div class="switch-wrapper">
+              <!-- <div class="switch-wrapper">
                 <nut-switch v-model="form.ignoreFailedRemoteFile" />
+              </div> -->
+              <div class="radio-wrapper">
+                <nut-radiogroup direction="horizontal" v-model="form.ignoreFailedRemoteFile">
+                  <nut-radio shape="button" label="disabled">
+                    {{ $t(`filePage.ignoreFailedRemoteFile.disabled`) }}
+                  </nut-radio>
+                  <nut-radio shape="button" label="quiet">
+                    {{ $t(`filePage.ignoreFailedRemoteFile.quiet`) }}
+                  </nut-radio>
+                  <nut-radio shape="button" label="enabled">
+                    {{ $t(`filePage.ignoreFailedRemoteFile.enabled`) }}
+                  </nut-radio>
+                
+                </nut-radiogroup>
               </div>
             </nut-form-item>
           </template>
@@ -448,6 +472,7 @@ const form = reactive<any>({
   displayName: "",
   remark: "",
   icon: "",
+  isIconColor: true,
   source: "local",
   sourceType: "collection",
   sourceName: "",
@@ -514,6 +539,7 @@ watchEffect(() => {
     form.displayName = sourceData.displayName || sourceData["display-name"];
     form.remark = sourceData.remark;
     form.icon = sourceData.icon;
+    form.isIconColor = sourceData.isIconColor !== false;
     form.source = sourceData.source || "local";
     form.type = sourceData.type || 'file';
     form.sourceType = sourceData.sourceType || 'collection';
@@ -526,7 +552,13 @@ watchEffect(() => {
     form.mergeSources = sourceData.mergeSources;
     form.content = sourceData.content;
     cmStore.setEditCode("FileEditer", sourceData.content);
-    form.ignoreFailedRemoteFile = sourceData.ignoreFailedRemoteFile;
+    let ignoreFailedRemoteFile = sourceData.ignoreFailedRemoteFile;
+    if (ignoreFailedRemoteFile === true) {
+      ignoreFailedRemoteFile = 'quiet';
+    } else if (ignoreFailedRemoteFile === false || ignoreFailedRemoteFile == null) {
+      ignoreFailedRemoteFile = 'disabled';
+    }
+    form.ignoreFailedRemoteFile = ignoreFailedRemoteFile;
     form.download = sourceData.download;
     const newProcess = JSON.parse(JSON.stringify(sourceData.process));
     form.process = newProcess;
@@ -635,6 +667,9 @@ const compare = () => {
     Toast.loading("生成中...", { id: "compare", cover: true, duration: 1500 });
     const data: any = JSON.parse(JSON.stringify(toRaw(form)));
     data.process = actionsToProcess(data.process, actionsList, ignoreList);
+    if (data.ignoreFailedRemoteFile === "disabled"){
+      data.ignoreFailedRemoteFile = false;
+    }
 
     // 过滤掉预览开关关闭的操作
     actionsChecked.forEach((item) => {
@@ -696,6 +731,9 @@ const submit = () => {
     const data: any = JSON.parse(JSON.stringify(toRaw(form)));
     data["display-name"] = data.displayName;
     data.process = actionsToProcess(data.process, actionsList, ignoreList);
+    if (data.ignoreFailedRemoteFile === "disabled"){
+      data.ignoreFailedRemoteFile = false;
+    }
 
     let res = null;
 
@@ -750,6 +788,9 @@ const fileIcon = computed(() => {
     return appearanceSetting.value.isDefaultIcon ? logoIcon : logoRedIcon;
   }
 });
+const isIconColor = computed(() => {
+  return form.isIconColor;
+});
 const iconPopupVisible = ref(false);
 const iconPopupRef = ref(null);
 const showIconPopup = () => {
@@ -782,10 +823,10 @@ const urlValidator = (val: string): Promise<boolean> => {
           .split(/[\r\n]+/)
           .map((i) => i.trim())
           .filter((i) => i.length)
-          .every((i) => /^(http|https):\/\/\S+$/.test(i))
+          .every((i) => /^(http|https):\/\/\S+$/.test(i) || /^\/api\/(file|module)\/(.+)/.test(i) || /^\/.+/.test(i))
       );
     } else {
-      resolve(/^(http|https):\/\/\S+$/.test(val));
+      resolve(/^(http|https):\/\/\S+$/.test(val) || /^\/api\/(file|module)\/(.+)/.test(val) || /^\/.+/.test(val));
     }
   });
 };

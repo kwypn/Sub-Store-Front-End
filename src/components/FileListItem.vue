@@ -1,9 +1,16 @@
 <template>
   <!-- 滚动内容 -->
-  <nut-swipe class="sub-item-swipe" ref="swipe" :disabled="props.disabled">
+  <nut-swipe
+    class="sub-item-swipe"
+    ref="swipe"
+    :disabled="props.disabled"
+    @close="setIsMoveClose()"
+    @open="setIsMoveOpen()"
+  >
     <div
       class="sub-item-wrapper"
       :style="{ padding: appearanceSetting.isSimpleMode ? '9px' : '16px' }"
+      @click="handleContentClick"
     >
       <div
         @click.stop="previewFile"
@@ -12,7 +19,7 @@
       >
         <!-- icon visible -->
         <div v-if="appearanceSetting.isShowIcon">
-          <div v-if="appearanceSetting.isIconColor">
+          <div v-if="isIconColor">
             <nut-avatar
               v-if="props[props.type].icon"
               :size="appearanceSetting.isSimpleMode ? '36' : '48'"
@@ -295,6 +302,10 @@
     if (props.file.type === 'mihomoProfile') return clashmetaIcon;
     return appearanceSetting.value.isDefaultIcon ? logoIcon : logoRedIcon;
   })
+  const isIconColor = computed(() => {
+    return props.file.isIconColor !== false;
+  });
+
   const collectionDetail = computed(() => {
     const nameList = props?.collection.subscriptions || [];
     if (nameList.length === 0) {
@@ -323,7 +334,7 @@
     document.body.style['overflow-y'] = '';
     (document.querySelector('#app') as HTMLElement).style['overflow-y'] = '';
     (document.querySelector('#app') as HTMLElement).style.height = '';
-    
+
     filePreviewIsVisible.value = false;
 
     window.scrollTo({
@@ -363,19 +374,91 @@
   const swipeClose = () => {
     swipe.value.close();
   };
+
   const swipeController = () => {
     if (swipeIsOpen.value) {
       swipe.value.close();
       swipeIsOpen.value = false;
       if(moreAction.value) moreAction.value.style.transform = 'rotate(0deg)';
+
+      document.removeEventListener('click', handleGlobalClick);
     } else {
       if (appearanceSetting.value.isLeftRight) {
         swipe.value.open('right');
+        setTimeout(() => {
+          swipeIsOpen.value = true;
+          setTimeout(() => {
+            document.addEventListener('click', handleGlobalClick);
+          }, 10);
+        }, 100);
       } else {
         swipe.value.open('left');
-        swipeIsOpen.value = true;
-        if(moreAction.value) moreAction.value.style.transform = 'rotate(180deg)';
+        setTimeout(() => {
+          swipeIsOpen.value = true;
+          if(moreAction.value) moreAction.value.style.transform = 'rotate(180deg)';
+
+          setTimeout(() => {
+            document.addEventListener('click', handleGlobalClick);
+          }, 10);
+        }, 100);
       }
+    }
+  };
+
+  const handleGlobalClick = (event) => {
+    const swipeRightEl = document.querySelector('.nut-swipe__right');
+    const swipeLeftEl = document.querySelector('.nut-swipe__left');
+
+    if ((swipeRightEl && swipeRightEl.contains(event.target)) ||
+        (swipeLeftEl && swipeLeftEl.contains(event.target))) {
+      return;
+    }
+
+    swipe.value.close();
+    swipeIsOpen.value = false;
+    if (moreAction.value) moreAction.value.style.transform = 'rotate(0deg)';
+
+    document.removeEventListener('click', handleGlobalClick);
+  };
+
+  const ismove = ref(false);
+
+  const setIsMoveOpen = () => {
+    ismove.value = true;
+
+    setTimeout(() => {
+      swipeIsOpen.value = true;
+      if (moreAction.value) moreAction.value.style.transform = 'rotate(180deg)';
+    }, 100);
+
+    setTimeoutTF();
+  };
+
+  const setIsMoveClose = () => {
+    ismove.value = true;
+    swipeIsOpen.value = false;
+    if (moreAction.value) moreAction.value.style.transform = 'rotate(0deg)';
+    setTimeoutTF();
+  };
+
+  const setTimeoutTF = () => {
+    setTimeout(() => {
+      ismove.value = false;
+    }, 200);
+  };
+
+  const handleContentClick = (event) => {
+    event.stopPropagation();
+
+    if (swipeIsOpen.value) {
+      swipe.value.close();
+      swipeIsOpen.value = false;
+      if (moreAction.value) moreAction.value.style.transform = 'rotate(0deg)';
+      return;
+    }
+
+    if (!ismove.value) {
+      previewFile();
     }
   };
 
@@ -386,7 +469,6 @@
 
 
   const onClickCopyConfig = async () => {
-    swipeController()
     const data = JSON.parse(JSON.stringify(toRaw(props.file)));
     data.name += `-copy${~~(Math.random() * 10000)}`;
 
@@ -395,7 +477,6 @@
     await subsStore.fetchSubsData();
     Toast.hide('copyConfig');
     showNotify({ title: t('subPage.copyConfigNotify.succeed') });
-    swipe.value.close();
   };
 
   const onClickEdit = () => {
@@ -403,7 +484,6 @@
   };
 
   const onClickDelete = () => {
-    swipeController()
     Dialog({
       title: t('subPage.deleteSub.title'),
       content: createVNode(
@@ -413,7 +493,7 @@
       ),
       onCancel: () => {},
       onOk: onDeleteConfirm,
-      onOpened: () => swipe.value.close(),
+      onOpened: () => {},
       popClass: 'auto-dialog',
       cancelText: t('subPage.deleteSub.btn.cancel'),
       okText: t('subPage.deleteSub.btn.confirm'),
@@ -431,7 +511,6 @@
   });
 
   const onClickExportFile = (name) => {
-    swipeClose();
     const url = `${host.value}/api/wholeFile/${encodeURIComponent(name)}?raw=1`;
     console.log('url', url);
     window.open(url, '_blank');  // 在新窗口中打开链接

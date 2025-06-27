@@ -400,7 +400,7 @@ const inCustomNameEditMode = computed(() =>
   editNameList.map((item) => item.isEditing).includes(true),
 );
 
-watch(list, (newV: ActionModuleProps[]) => {
+watch(() => list, (newV: ActionModuleProps[]) => {
   if (editNameList.length > newV.length) {
     // delete
     const elementsToDelete = editNameList.filter(
@@ -421,7 +421,7 @@ watch(list, (newV: ActionModuleProps[]) => {
       editNameList.push(generateEditNameItem(element));
     });
   }
-});
+}, { deep: true }); // https://cn.vuejs.org/guide/essentials/watchers
 
 watch(inCustomNameEditMode, (newV) => {
   emit('updateCustomNameModeFlag', newV);

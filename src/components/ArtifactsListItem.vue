@@ -4,16 +4,16 @@
     ref="swipe"
     @close="setIsMoveClose()"
     @open="setIsMoveOpen()"
-    @click.stop="previewSource"
-    :disabled="$props.disabled"
+    :disabled="props.disabled"
   >
     <div
       class="sub-item-wrapper"
       :style="{ padding: appearanceSetting.isSimpleMode ? '9px' : '16px' }"
+      @click="handleContentClick"
     >
       <div v-if="appearanceSetting.isShowIcon" class="sub-img-wrappers" @click.stop="openUrl">
         <nut-avatar
-          :class="{ 'sub-item-customer-icon': !appearanceSetting.isIconColor }"
+          :class="{ 'sub-item-customer-icon': !isIconColor }"
           :size="appearanceSetting.isSimpleMode ? '36' : '48'"
           :url="icon"
           bg-color=""
@@ -211,16 +211,13 @@ import { useI18n } from "vue-i18n";
 import { useGlobalStore } from "@/store/global";
 import { useHostAPI } from "@/hooks/useHostAPI";
 const globalStore = useGlobalStore();
-
-// const { isLeftRight, isSimpleMode, isIconColor, isDefaultIcon } =
-//   storeToRefs(globalStore);
 const { copy, isSupported } = useClipboard();
 const { toClipboard: copyFallback } = useV3Clipboard();
 
 const { t } = useI18n();
 const { currentUrl: host } = useHostAPI();
 
-const { name } = defineProps<{
+const props = defineProps<{
   name: string;
   disabled?: boolean;
 }>();
@@ -232,7 +229,7 @@ const settingsStore = useSettingsStore();
 const { appearanceSetting } = storeToRefs(settingsStore);
 const { artifacts } = storeToRefs(artifactsStore);
 const artifact = computed(() => {
-  return artifacts.value.find((item) => item.name === name);
+  return artifacts.value.find((item) => item.name === props.name);
 });
 const emit = defineEmits(["edit"]);
 
@@ -262,6 +259,9 @@ const sourceSub = computed(() => {
       return subsStore.getOneFile(name);
   }
 });
+const isIconColor = computed(() => {
+  return artifact.value.isIconColor !== false;
+});
 
 const icon = computed(() => {
   const icon = artifact.value.icon;
@@ -278,33 +278,34 @@ const icon = computed(() => {
   }
   switch (platform) {
     case "Surge":
-      return appearanceSetting.value.isIconColor ? surgeColorIcon : surgeIcon;
+      return isIconColor ? surgeColorIcon : surgeIcon;
     case "SurgeMac":
-      return appearanceSetting.value.isIconColor ? surgeMacColorIcon : surgeMacIcon;
+      return isIconColor ? surgeMacColorIcon : surgeMacIcon;
     case "QX":
-      return appearanceSetting.value.isIconColor ? quanxColorIcon : quanxIcon;
+      return isIconColor ? quanxColorIcon : quanxIcon;
     case "Loon":
-      return appearanceSetting.value.isIconColor ? loonColorIcon : loonIcon;
+      return isIconColor ? loonColorIcon : loonIcon;
     case "Egern":
-      return appearanceSetting.value.isIconColor ? egernColorIcon : egernIcon;
+      return isIconColor ? egernColorIcon : egernIcon;
     case "Clash":
-      return appearanceSetting.value.isIconColor ? clashColorIcon : clashIcon;
+      return isIconColor ? clashColorIcon : clashIcon;
     case "ClashMeta":
-      return appearanceSetting.value.isIconColor ? clashMetaColorIcon : clashMetaIcon;
+      return isIconColor ? clashMetaColorIcon : clashMetaIcon;
     case "Stash":
-      return appearanceSetting.value.isIconColor ? stashColorIcon : stashIcon;
+      return isIconColor ? stashColorIcon : stashIcon;
     case "ShadowRocket":
-      return appearanceSetting.value.isIconColor ? shadowRocketColorIcon : shadowRocketIcon;
+      return isIconColor ? shadowRocketColorIcon : shadowRocketIcon;
     case "V2Ray":
-      return appearanceSetting.value.isIconColor ? v2rayColorIcon : v2rayIcon;
+      return isIconColor ? v2rayColorIcon : v2rayIcon;
     case "sing-box":
-      return appearanceSetting.value.isIconColor ? singboxColorIcon : singboxIcon;
+      return isIconColor ? singboxColorIcon : singboxIcon;
     case "Surfboard":
-      return appearanceSetting.value.isIconColor ? surfboardColorIcon : surfboardIcon;
+      return isIconColor ? surfboardColorIcon : surfboardIcon;
     default:
       return appearanceSetting.value.isDefaultIcon ? logoIcon : logoRedIcon;
   }
 });
+
 
 const sourceUrl = computed(() => {
   if (!artifact.value.type) {
@@ -344,11 +345,26 @@ const ismove = ref(false);
 
 const setIsMoveOpen = () => {
   ismove.value = true;
+
+  setTimeout(() => {
+    swipeIsOpen.value = true;
+    if (moreAction.value) moreAction.value.style.transform = "rotate(180deg)";
+
+    setTimeout(() => {
+      document.addEventListener('click', handleGlobalClick);
+    }, 10);
+  }, 100);
+
   setTimeoutTF();
 };
 
 const setIsMoveClose = () => {
   ismove.value = true;
+  swipeIsOpen.value = false;
+  if (moreAction.value) moreAction.value.style.transform = "rotate(0deg)";
+
+  document.removeEventListener('click', handleGlobalClick);
+
   setTimeoutTF();
 };
 
@@ -359,7 +375,38 @@ const setTimeoutTF = () => {
   }, 200);
 };
 
-const previewSource = () => {
+const handleGlobalClick = (event: MouseEvent) => {
+  const swipeRightEl = document.querySelector('.nut-swipe__right');
+  const swipeLeftEl = document.querySelector('.nut-swipe__left');
+
+  if ((swipeRightEl && swipeRightEl.contains(event.target as Node)) ||
+      (swipeLeftEl && swipeLeftEl.contains(event.target as Node))) {
+    return;
+  }
+
+  swipe.value.close();
+  swipeIsOpen.value = false;
+  if (moreAction.value) moreAction.value.style.transform = "rotate(0deg)";
+
+  document.removeEventListener('click', handleGlobalClick);
+};
+
+const handleContentClick = (event: MouseEvent) => {
+  event.stopPropagation();
+
+  if (swipeIsOpen.value) {
+    swipe.value.close();
+    swipeIsOpen.value = false;
+    if (moreAction.value) moreAction.value.style.transform = "rotate(0deg)";
+    return;
+  }
+
+  if (!ismove.value && sourceUrl.value) {
+    openPreviewSource();
+  }
+};
+
+const openPreviewSource = () => {
   if (ismove.value || !sourceUrl.value) return;
   Dialog({
     title: t("tabBar.sub"),
@@ -438,13 +485,27 @@ const swipeController = () => {
     swipe.value.close();
     swipeIsOpen.value = false;
     if(moreAction.value) moreAction.value.style.transform = "rotate(0deg)";
+
+    document.removeEventListener('click', handleGlobalClick);
   } else {
     if (appearanceSetting.value.isLeftRight) {
       swipe.value.open("right");
+      setTimeout(() => {
+        swipeIsOpen.value = true;
+        setTimeout(() => {
+          document.addEventListener('click', handleGlobalClick);
+        }, 10);
+      }, 100);
     } else {
       swipe.value.open("left");
-      swipeIsOpen.value = true;
-      if(moreAction.value) moreAction.value.style.transform = "rotate(180deg)";
+      setTimeout(() => {
+        swipeIsOpen.value = true;
+        if(moreAction.value) moreAction.value.style.transform = "rotate(180deg)";
+
+        setTimeout(() => {
+          document.addEventListener('click', handleGlobalClick);
+        }, 10);
+      }, 100);
     }
   }
 };
@@ -468,15 +529,13 @@ const onDeleteConfirm = async () => {
   }
 
   await artifactsStore.deleteArtifact(artifact.value.name);
-  
+
   if (shouldShowToast) {
     Toast.hide("delete-toast");
   }
 };
 
 const onClickSync = async () => {
-  swipeController()
-  swipe.value.close();
   Toast.loading("同步中...", {
     cover: true,
     id: "sync-toast",
@@ -487,17 +546,10 @@ const onClickSync = async () => {
 };
 
 const onClickEdit = () => {
-  swipeController()
-  swipe.value.close();
   emit("edit", artifact.value);
 };
 
-const onclose = () => {
-  swipe.value.close();
-};
-
 const onClickDelete = () => {
-  swipeController()
   Dialog({
     title: t("syncPage.deleteArt.title"),
     content: createVNode(
@@ -507,7 +559,7 @@ const onClickDelete = () => {
     ),
     onCancel: () => {},
     onOk: onDeleteConfirm,
-    onOpened: () => swipe.value.close(),
+    onOpened: () => {},
     popClass: "auto-dialog",
     cancelText: t("syncPage.deleteArt.btn.cancel"),
     okText: t("syncPage.deleteArt.btn.confirm"),
@@ -540,6 +592,7 @@ watch(isSyncOpen, async () => {
 .sub-item-customer-icon {
   :deep(img) {
     & {
+      opacity: 0.8;
       filter: brightness(var(--img-brightness));
     }
   }
@@ -611,7 +664,7 @@ watch(isSyncOpen, async () => {
           flex: 1;
           display: flex;
           align-items: center;
-          
+
           flex-direction: row;
           justify-content: flex-end; // ios 14
 

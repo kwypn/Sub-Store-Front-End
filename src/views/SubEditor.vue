@@ -5,7 +5,7 @@
     <div class="form-block-wrapper">
       <div v-if="appearanceSetting.isShowIcon" class="sticky-title-icon-container">
         <nut-image
-          :class="{ 'sub-item-customer-icon': !appearanceSetting.isIconColor }"
+          :class="{ 'sub-item-customer-icon': !form.isIconColor }"
           :src="subIcon"
           fit="cover"
           show-loading
@@ -108,7 +108,16 @@
               @click-left-icon="showIconPopup"
             />
         </nut-form-item>
-
+        <!-- isIconColor -->
+        <nut-form-item
+          :label="$t(`editorPage.subConfig.basic.isIconColor.label`)"
+          prop="isIconColor"
+          class="ignore-failed-wrapper"
+        >
+          <div class="switch-wrapper">
+            <nut-switch v-model="form.isIconColor" />
+          </div>
+        </nut-form-item>
         <template v-if="editType === 'subs'">
           <!-- source -->
           <nut-form-item
@@ -323,30 +332,46 @@
               v-model="form.subscriptions"
               class="subs-checkbox-wrapper"
             >
-              <nut-checkbox
-                v-for="item in subsSelectList"
-                v-show="shouldShowElement(item[3])"
-                :key="item[0]"
-                :label="item[0]"
-                text-position="left"
-                class="subs-checkbox"
+              <draggable
+                :list="filteredSubsSelectList"
+                :sort="true"
+                item-key="0"
+                animation="300"
+                :scroll-sensitivity="200"
+                :force-fallback="true"
+                :scroll-speed="8"
+                :scroll="true"
+                handle=".drag-handle"
+                @start="onStartDrag"
+                @end="onEndDrag"
               >
-                <div class="sub-img-wrapper">
-                  <nut-avatar
-                    :class="{ 'sub-item-customer-icon': !appearanceSetting.isIconColor, 'icon': true  }"
-                    v-if="item[2]"
-                    size="32"
-                    :url="item[2]"
-                    bg-color=""
-                  ></nut-avatar>
-                  <span class="sub-item">
-                    <span class="name">{{ item[1] }}</span>
-                    <span class="tag" v-for="i in item[3]" :key="i">
-                      <nut-tag>{{ i }}</nut-tag>
-                    </span>
-                  </span>
-                </div>
-              </nut-checkbox>
+                <template #item="{ element }">
+                  <nut-checkbox
+                    v-show="shouldShowElement(element[3])"
+                    :key="element[0]"
+                    :label="element[0]"
+                    text-position="left"
+                    class="subs-checkbox"
+                  >
+                    <div class="sub-img-wrapper">
+                      <nut-avatar
+                        :class="{ 'sub-item-customer-icon': !element[4], 'icon': true  }"
+                        v-if="element[2]"
+                        size="32"
+                        :url="element[2]"
+                        bg-color=""
+                      ></nut-avatar>
+                      <span class="sub-item">
+                        <span class="name">{{ element[1] }}</span>
+                        <span class="tag" v-for="i in element[3]" :key="i">
+                          <nut-tag>{{ i }}</nut-tag>
+                        </span>
+                      </span>
+                      <font-awesome-icon icon="fa-solid fa-bars" class="drag-handle"/>
+                    </div>
+                  </nut-checkbox>
+                </template>
+              </draggable>
             </nut-checkboxgroup>
             </nut-form-item>
             <nut-form-item
@@ -388,8 +413,22 @@
           prop="ignoreFailedRemoteSub"
           class="ignore-failed-wrapper"
         >
-          <div class="switch-wrapper">
+          <!-- <div class="switch-wrapper">
             <nut-switch v-model="form.ignoreFailedRemoteSub" />
+          </div> -->
+          <div class="radio-wrapper">
+            <nut-radiogroup direction="horizontal" v-model="form.ignoreFailedRemoteSub">
+              <nut-radio shape="button" label="disabled">
+                {{ $t(`editorPage.subConfig.basic.ignoreFailedRemoteSub.disabled`) }}
+              </nut-radio>
+              <nut-radio shape="button" label="quiet">
+                {{ $t(`editorPage.subConfig.basic.ignoreFailedRemoteSub.quiet`) }}
+              </nut-radio>
+              <nut-radio shape="button" label="enabled">
+                {{ $t(`editorPage.subConfig.basic.ignoreFailedRemoteSub.enabled`) }}
+              </nut-radio>
+            
+            </nut-radiogroup>
           </div>
         </nut-form-item>
       </nut-form>
@@ -465,6 +504,7 @@ import { useSubsStore } from "@/store/subs";
 import { addItem, deleteItem, toggleItem } from "@/utils/actionsOperate";
 import { actionsToProcess } from "@/utils/actionsToPorcess";
 import { initStores } from "@/utils/initApp";
+import draggable from "vuedraggable";
 import CompareTable from "@/views/CompareTable.vue";
 import ActionBlock from "@/views/editor/ActionBlock.vue";
 import CommonBlock from "@/views/editor/CommonBlock.vue";
@@ -524,7 +564,8 @@ const padding = bottomSafeArea.value + "px";
         item.name,
         item.displayName || item['display-name'] || item.name,
         item.icon || (appearanceSetting.value.isDefaultIcon ? logoIcon : logoRedIcon),
-        item.tag
+        item.tag,
+        item.isIconColor !== false
       ];
     });
   });
@@ -598,6 +639,7 @@ const form = reactive<any>({
   ignoreFailedRemoteSub: false,
   passThroughUA: false,
   icon: "",
+  isIconColor: true,
   process: [
     {
       type: "Quick Setting Operator",
@@ -639,12 +681,19 @@ watchEffect(() => {
   const sourceData: any = toRaw(sub.value) || toRaw(collection.value);
   const newProcess = JSON.parse(JSON.stringify(sourceData.process));
   form.mergeSources = sourceData.mergeSources;
-  form.ignoreFailedRemoteSub = sourceData.ignoreFailedRemoteSub;
+  let ignoreFailedRemoteSub = sourceData.ignoreFailedRemoteSub;
+  if (ignoreFailedRemoteSub === true) {
+    ignoreFailedRemoteSub = 'quiet';
+  } else if (ignoreFailedRemoteSub === false || ignoreFailedRemoteSub == null) {
+    ignoreFailedRemoteSub = 'disabled';
+  }
+  form.ignoreFailedRemoteSub = ignoreFailedRemoteSub;
   form.passThroughUA = sourceData.passThroughUA;
   form.name = sourceData.name;
   form.displayName = sourceData.displayName || sourceData["display-name"];
   form.remark = sourceData.remark;
   form.icon = sourceData.icon;
+  form.isIconColor = sourceData.isIconColor !== false;
   form.process = newProcess;
   form.subUserinfo = sourceData.subUserinfo;
   form.proxy = sourceData.proxy;
@@ -659,6 +708,7 @@ watchEffect(() => {
     case "collections":
       form.subscriptions = [];
       form.subscriptions.push(...sourceData.subscriptions);
+      console.log('form.subscriptions ==>', form.subscriptions);
       break;
     case "subs":
       form.source = sourceData.source;
@@ -799,6 +849,9 @@ const compare = () => {
     });
     const data: any = JSON.parse(JSON.stringify(toRaw(form)));
     data.process = actionsToProcess(data.process, actionsList, ignoreList);
+    if (data.ignoreFailedRemoteSub === "disabled"){
+      data.ignoreFailedRemoteSub = false;
+    }
     data.tag = [
       ...new Set(
         (data.tag || "")
@@ -901,6 +954,9 @@ const submit = () => {
     ];
     data["display-name"] = data.displayName;
     data.process = actionsToProcess(data.process, actionsList, ignoreList);
+    if (data.ignoreFailedRemoteSub === "disabled"){
+      data.ignoreFailedRemoteSub = false;
+    }
 
     console.log('submit.....\n', data);
 
@@ -968,10 +1024,10 @@ const urlValidator = (val: string): Promise<boolean> => {
           .split(/[\r\n]+/)
           .map((i) => i.trim())
           .filter((i) => i.length)
-          .every((i) => /^(http|https):\/\/\S+$/.test(i))
+          .every((i) => /^(http|https):\/\/\S+$/.test(i) || /^\/api\/(file|module)\/(.+)/.test(i) || /^\/.+/.test(i))
       );
     } else {
-      resolve(/^(http|https):\/\/\S+$/.test(val));
+      resolve(/^(http|https):\/\/\S+$/.test(val) || /^\/api\/(file|module)\/(.+)/.test(val) || /^\/.+/.test(val));
     }
   });
 };
@@ -983,8 +1039,8 @@ const urlValidator = (val: string): Promise<boolean> => {
   // 去除空格
   const strTrim = (prop: string) => {
     if (typeof form[prop] === "string") {
-      // 正则表达式去除首尾空格,
-      form[prop] = form[prop].replace(/[^\S\r\n]+/g, '')
+      // 去除首尾空格
+      form[prop] = form[prop].trim();
     }
   }
   // 图标
@@ -1122,11 +1178,76 @@ const urlValidator = (val: string): Promise<boolean> => {
     }
     subCheckboxIndeterminate.value = false
   };
+  const filteredSubsSelectList = ref([]);
+
+  const updateFilteredSubsList = () => {
+    if (subsSelectList.value && subsSelectList.value.length > 0) {
+      const filtered = subsSelectList.value.filter(item => shouldShowElement(item[3]));
+      
+      // 分离已勾选和未勾选的订阅
+      const selectedItems = [];
+      const unselectedItems = [];
+      
+      // 优先添加已勾选的订阅
+      form.subscriptions.forEach(selectedName => {
+        const item = filtered.find(item => item[0] === selectedName);
+        if (item) {
+          selectedItems.push(item);
+        }
+      });
+      
+      // 添加未勾选的订阅
+      filtered.forEach(item => {
+        if (!form.subscriptions.includes(item[0])) {
+          unselectedItems.push(item);
+        }
+      });
+      
+      // 合并：已勾选的在前，未勾选的在后
+      filteredSubsSelectList.value = [...selectedItems, ...unselectedItems];
+    } else {
+      filteredSubsSelectList.value = [];
+    }
+  };
+  watch([tag, subsSelectList, () => subsStore.subs], () => {
+    updateFilteredSubsList();
+  }, { immediate: true, deep: true });
+  const isDragging = ref(false);
+
+  const onStartDrag = () => {
+    console.log("开始拖拽");
+    isDragging.value = true;
+  };
+
+  const onEndDrag = () => {
+    console.log("结束拖拽");
+    isDragging.value = false;
+  
+    const newFilteredOrder = filteredSubsSelectList.value.map(item => item[0]);
+    
+    const newSubscriptions = [];
+    
+    // 先按新顺序添加当前过滤列表中已选中的订阅
+    newFilteredOrder.forEach(name => {
+      if (form.subscriptions.includes(name)) {
+        newSubscriptions.push(name);
+      }
+    });
+    
+    // 添加不在当前过滤列表中但已选中的订阅（保持原有顺序）
+    form.subscriptions.forEach(name => {
+      if (!newFilteredOrder.includes(name)) {
+        newSubscriptions.push(name);
+      }
+    });
+    form.subscriptions.splice(0, form.subscriptions.length, ...newSubscriptions);
+    console.log("更新后的 form.subscriptions:", form.subscriptions);
+  };
   watch([tag, form.subscriptions, subsSelectList], () => {
     const selected = toRaw(form.subscriptions) || []
     const group = subsSelectList.value.filter(item => shouldShowElement(item[3])).map(item => item[0]) || []
     // 1. group 中不包含 selected 中的任何元素, subCheckbox 为 false, subCheckboxIndeterminate 为 false
-    // 2. group 中包含 selected 中的任何元素, subCheckbox 为 true, subCheckboxIndeterminate 为 true
+    // 2. group 中包含 selected 中的任意元素, subCheckbox 为 true, subCheckboxIndeterminate 为 true
     // 3. group 中包含 selected 中的所有元素, subCheckbox 为 true, subCheckboxIndeterminate 为 false
     if (group.every(item => selected.includes(item))) {
       // console.log('group 中包含 selected 中的所有元素')
@@ -1357,6 +1478,7 @@ const handleEditGlobalClick = () => {
         align-items: center;
         font-size: 14px;
         color: var(--second-text-color);
+        position: relative;
         .icon {
           margin-right: 8px;
         }
@@ -1394,6 +1516,15 @@ const handleEditGlobalClick = () => {
               filter: brightness(var(--img-brightness));
             }
           }
+        }
+        .drag-handle {
+          position: absolute;
+          right: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          color: var(--second-text-color);
+          font-size: 16px;
+          padding: 10px;
         }
       }
     }

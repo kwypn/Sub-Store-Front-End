@@ -19,6 +19,7 @@ export default {
       flowFailed: "Refresh of {name} failed!",
       failed: "Refresh Failed\n",
       loading: "Refreshing Data...",
+      rePwaing: 'Resetting PWA cache...',
       rePwa: 'PWA cache reset successfully. The page will refresh soon...',
     },
   },
@@ -93,7 +94,7 @@ export default {
     url: {
       label: "URL",
       placeholder:
-        "URL (please separate multiple urls with a new line). Supported parameters: noCache - do not use cache; insecure - do not verify the server certificate. For example: http://a.com#noCache&insecure",
+        "Supports mixing three types of formats with line breaks: 1. Full remote URL 2. Internal file reference like /api/file/name 3. Absolute path for local file. Supported parameters: noCache - do not use cache; insecure - do not verify the server certificate. For example: http://a.com#noCache&insecure",
       isEmpty: "URL cannot be empty",
       isIllegal: "Invalid URL",
     },
@@ -113,6 +114,9 @@ export default {
     },
     ignoreFailedRemoteFile: {
       label: "Ignore failed remote file(s)",
+      quiet: 'Enabled (without notification)',
+      disabled: 'Disabled',
+      enabled : 'Enabled (with notification)'
     },
     download: {
       label: "Enable download (filename: display name)",
@@ -294,7 +298,7 @@ export default {
             label: "Usage",
             title: "Subscription URL(s)",
             content:
-              "Subscription URL (please separate multiple subscriptions with a new line). \n\nSupported parameters:\n\ninsecure: https requests will not verify the server certificate\ncacheKey: Setting the name of the optimistic cache. Its value can be managed in the persistent store(suitable for subscriptions that often fail to fetch).\n\nvalidCheck: error will be reported when expired or there is no remaining traffic\n\nflowUserAgent: the User-Agent for fetching subscription usage info\n\nflowUrl: the URL for fetching subscription usage info(using the content of the response body)\n\nshowRemaining: show remaining traffic instead of usage\n\nnoFlow: do not query for flow\n\nhideExpire: hide expiration time\n\nnoCache: do not use cache\n\nresetDay: the day when monthly data usage resets\n\nstartDate: subscription start date\n\ncycleDays: reset cycle (in days).\n\nFor example: http://a.com?token=1#cycleDays=31&startDate=2024-06-04 \nor http://a.com?token=1#resetDay=15",
+              "Supports mixing three types of formats with line breaks:\n1. Full remote URL\n2. Internal file reference like /api/file/name 3.\nAbsolute path for local file\n\nSupported parameters:\n\ninsecure: https requests will not verify the server certificate\ncacheKey: Setting the name of the optimistic cache. Its value can be managed in the persistent store(suitable for subscriptions that often fail to fetch).\n\nvalidCheck: error will be reported when expired or there is no remaining traffic\n\nflowUserAgent: the User-Agent for fetching subscription usage info\n\nflowUrl: the URL for fetching subscription usage info(using the content of the response body)\n\nshowRemaining: show remaining traffic instead of usage\n\nnoFlow: do not query for flow\n\nhideExpire: hide expiration time\n\nnoCache: do not use cache\n\nresetDay: the day when monthly data usage resets\n\nstartDate: subscription start date\n\ncycleDays: reset cycle (in days).\n\nFor example: http://a.com?token=1#cycleDays=31&startDate=2024-06-04 \nor http://a.com?token=1#resetDay=15",
           },
           isEmpty: "URL cannot be empty",
           isIllegal: "Invalid URL",
@@ -317,8 +321,14 @@ export default {
           placeholder:
             "Click on the left or top icon, fill in the icon link from the icon library, do not use jpg.",
         },
+        isIconColor: {
+          label: 'Custom Icon Use Original Color',
+        },
         ignoreFailedRemoteSub: {
           label: "Ignore failed remote subscription(s)",
+          quiet: 'Enabled (without notification)',
+          disabled: 'Disabled',
+          enabled : 'Enabled (with notification)'
         },
         ua: {
           label: "User-Agent",
@@ -882,10 +892,13 @@ export default {
       currentTag: "Current",
     },
     addApi: {
-      title: "Add New Backend",
+      title: "Add New Backend Connection",
       placeholder: {
         name: "Please input backend name, must be unique",
-        url: "Please input backend url",
+        url: "Please input backend path or address",
+      },
+      errors: {
+        nameEmpty: "Name cannot be empty",
       },
       btn: "Add",
     },
@@ -955,5 +968,29 @@ export default {
     changelogs: {
       title: "Changelogs",
     },
+  },
+  magicPath: {
+    title: "Backend Connection Configuration",
+    description: "Custom backend configuration needed. Please enter the backend path or address<br><br>Supports three formats:<br>• Path prefix (/path)<br>• Host+path (host:port/path)<br>• Full URL (http(s)://host:port/path)",
+    placeholder: "Please enter backend path or address",
+    connect: "Connect",
+    skip: "Skip",
+    info: "You can configure this later in the Backend Settings in the My Profile page",
+    customInfo: "Self-Hosted: Backend path can be set via SUB_STORE_FRONTEND_BACKEND_PATH environment variable",
+    troubleshooting: 'You may refer to this troubleshooting guide',
+    preview: "Preview",
+    inputTypes: {
+      path: "Path only mode (using current domain)",
+      host: "Host+Path mode",
+      full: "Full URL mode"
+    },
+    success: "Connected successfully!",
+    errors: {
+      empty: "Input cannot be empty",
+      invalid: "Invalid backend address",
+      connection: "Connection failed, please check if the input is correct",
+      unknown: "An unknown error occurred",
+      portRequired: "Host format must include port number"
+    }
   },
 };
